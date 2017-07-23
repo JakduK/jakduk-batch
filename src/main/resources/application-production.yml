@@ -4,7 +4,7 @@ logging:
 
 spring:
   datasource:
-    url: jdbc:mariadb://192.168.35.149:3306/JAKDUK_BATCH_DEV
+    url: jdbc:mariadb://192.168.35.149:3306/JAKDUK_BATCH_PRD
     username: root
     password: jakduk584
   batch:
@@ -12,13 +12,13 @@ spring:
       enabled: false
   data:
     mongodb:
-      uri: mongodb://192.168.35.138/jakduk_test
+      uri: mongodb://192.168.35.138/jakduk_sample
 
 jakduk:
   elasticsearch:
-    index-board: jakduk_dev_board
-    index-gallery: jakduk_dev_gallery
-    index-search-word: jakduk_dev_search_word
+    index-board: jakduk_prd_board
+    index-gallery: jakduk_prd_gallery
+    index-search-word: jakduk_prd_search_word
     bulk-actions: 10000
     bulk-concurrent-requests: 2
     bulk-flush-interval-seconds: 10
