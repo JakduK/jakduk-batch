@@ -1,0 +1,30 @@
+logging:
+  level:
+    root: debug
+
+spring:
+  datasource:
+    url: jdbc:mariadb://192.168.35.149:3306/JAKDUK_BATCH_PRD
+    username: root
+    password: jakduk584
+  batch:
+    initializer:
+      enabled: false
+  data:
+    mongodb:
+      uri: mongodb://192.168.35.138/jakduk_sample
+
+jakduk:
+  elasticsearch:
+    index-board: jakduk_prd_board
+    index-gallery: jakduk_prd_gallery
+    index-search-word: jakduk_prd_search_word
+    bulk-actions: 10000
+    bulk-concurrent-requests: 2
+    bulk-flush-interval-seconds: 10
+    bulk-size-mb: 50
+  storage:
+    image-path: /jakduk/storage/image/
+    thumbnail-path: /jakduk/storage/thumbnail/
+    user-picture-large-path: /jakduk/storage/thumbnail/
+    user-picture-small-path: /jakduk/storage/user/picture/small/
