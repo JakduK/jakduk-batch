@@ -13,7 +13,7 @@ import org.springframework.context.annotation.Configuration;
 @Getter
 @Setter
 @Configuration
-@ConfigurationProperties(prefix = "jakduk")
+@ConfigurationProperties("jakduk")
 public class JakdukProperties {
 
     private Elasticsearch elasticsearch = new Elasticsearch();
@@ -22,8 +22,8 @@ public class JakdukProperties {
     @Getter
     @Setter
     @Configuration
+    @ConfigurationProperties("jakduk.elasticsearch")
     public class Elasticsearch {
-        private Boolean enable;
         private String indexBoard;
         private String indexGallery;
         private String indexSearchWord;
@@ -36,6 +36,7 @@ public class JakdukProperties {
     @Getter
     @Setter
     @Configuration
+    @ConfigurationProperties("jakduk.storage")
     public class Storage {
         private String imagePath;
         private String thumbnailPath;
