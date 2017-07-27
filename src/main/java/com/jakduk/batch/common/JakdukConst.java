@@ -18,15 +18,6 @@ public class JakdukConst {
     public final static String COLLECTION_GALLERY = "gallery";
 
     /**
-     * 작두 계정 Provider 종류.
-     */
-    public enum ACCOUNT_TYPE {
-        JAKDUK,
-        FACEBOOK,
-        DAUM
-    }
-
-    /**
      * 게시판 말머리 종류.
      */
     public enum BOARD_CATEGORY_TYPE {
@@ -62,14 +53,6 @@ public class JakdukConst {
         GALLERY_ADD_HASH_FIELD_01,					// Gallery에 hash 필드 추가.
         GALLERY_CHECK_NAME_01,						// Gallery 의 name이 fileName과 동일하면 ""로 엎어친다.
         BOARD_FREE_COMMENT_ADD_HISTORY_01			// BoardFreeComment에 history 필드를 추가한다.
-    }
-
-    /**
-     * 몽고DB Criteria Operator
-     */
-    public enum CRITERIA_OPERATOR {
-        GT,
-        LT
     }
 
     /**

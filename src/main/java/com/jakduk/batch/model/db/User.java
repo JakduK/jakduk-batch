@@ -26,7 +26,7 @@ public class User {
 	
 	private String password;						// 비밀번호
 
-	private JakdukConst.ACCOUNT_TYPE providerId;		// 제공자
+	private String providerId;						// 제공자
 
 	private String providerUserId;					// SNS USER ID
 

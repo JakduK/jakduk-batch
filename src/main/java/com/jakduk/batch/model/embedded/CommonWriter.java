@@ -18,7 +18,7 @@ public class CommonWriter {
 	
 	private String userId;
 	private String username;
-	private JakdukConst.ACCOUNT_TYPE providerId;
+	private String providerId;
 	private UserPictureInfo picture;
 
 }

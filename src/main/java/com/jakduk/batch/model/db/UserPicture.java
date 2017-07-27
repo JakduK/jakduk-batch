@@ -28,6 +28,6 @@ public class UserPicture {
 
     private String contentType;
 
-    private JakdukConst.ACCOUNT_TYPE sourceType;
+    private String sourceType;
 
 }
