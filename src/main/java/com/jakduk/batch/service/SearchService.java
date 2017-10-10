@@ -476,7 +476,7 @@ public class SearchService {
         propertiesNode.set("article", jsonNodeFactory.objectNode().set("properties", articleNode));
 
         ObjectNode writerNode = jsonNodeFactory.objectNode();
-        writerNode.set("providerId", jsonNodeFactory.objectNode().put("type", "string").put("index", "not_analyzed"));
+        writerNode.set("providerId", jsonNodeFactory.objectNode().put("type", "string").put("index", "no"));
         writerNode.set("userId", jsonNodeFactory.objectNode().put("type", "string").put("index", "no"));
         writerNode.set("username", jsonNodeFactory.objectNode().put("type", "string").put("index", "no"));
         propertiesNode.set("writer", jsonNodeFactory.objectNode().set("properties", writerNode));
