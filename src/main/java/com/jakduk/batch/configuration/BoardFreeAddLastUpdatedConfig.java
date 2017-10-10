@@ -1,6 +1,6 @@
 package com.jakduk.batch.configuration;
 
-import com.jakduk.batch.common.JakdukConst;
+import com.jakduk.batch.common.Constants;
 import com.jakduk.batch.model.db.Article;
 import com.jakduk.batch.processor.BoardFreeAddLastUpdatedProcessor;
 import org.springframework.batch.core.Job;
@@ -58,7 +58,7 @@ public class BoardFreeAddLastUpdatedConfig {
     public ItemReader<Article> boardFreeAddLastUpdatedReader() {
 
         String query = String.format("{'batch':{$nin:['%s']}}",
-                JakdukConst.BATCH_TYPE.BOARD_FREE_ADD_LAST_UPDATED_01);
+                Constants.BATCH_TYPE.BOARD_FREE_ADD_LAST_UPDATED_01);
 
         MongoItemReader<Article> itemReader = new MongoItemReader<>();
         itemReader.setTemplate(mongoOperations);

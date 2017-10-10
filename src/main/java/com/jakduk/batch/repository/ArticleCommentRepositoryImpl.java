@@ -1,6 +1,6 @@
 package com.jakduk.batch.repository;
 
-import com.jakduk.batch.common.JakdukConst;
+import com.jakduk.batch.common.Constants;
 import com.jakduk.batch.model.db.ArticleComment;
 import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,7 +43,7 @@ public class ArticleCommentRepositoryImpl implements ArticleCommentRepositoryCus
             aggregation = Aggregation.newAggregation(sort, limit1);
         }
 
-        AggregationResults<ArticleComment> results = mongoTemplate.aggregate(aggregation, JakdukConst.COLLECTION_ARTICLE_COMMENT, ArticleComment.class);
+        AggregationResults<ArticleComment> results = mongoTemplate.aggregate(aggregation, Constants.COLLECTION_ARTICLE_COMMENT, ArticleComment.class);
 
         return results.getMappedResults();
     }

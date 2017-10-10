@@ -1,6 +1,6 @@
 package com.jakduk.batch.model.db;
 
-import com.jakduk.batch.common.JakdukConst;
+import com.jakduk.batch.common.Constants;
 import com.jakduk.batch.model.embedded.CommonFeelingUser;
 import com.jakduk.batch.model.embedded.CommonWriter;
 import com.jakduk.batch.model.embedded.GalleryStatus;
@@ -51,7 +51,7 @@ public class Gallery {
 
 	private List<CommonFeelingUser> usersDisliking;
 
-	private List<JakdukConst.BATCH_TYPE> batch;
+	private List<Constants.BATCH_TYPE> batch;
 
 	private String hash;
 

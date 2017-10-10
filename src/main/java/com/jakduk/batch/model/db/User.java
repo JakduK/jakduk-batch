@@ -1,6 +1,5 @@
 package com.jakduk.batch.model.db;
 
-import com.jakduk.batch.common.JakdukConst;
 import lombok.*;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.DBRef;

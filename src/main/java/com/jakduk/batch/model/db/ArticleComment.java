@@ -1,6 +1,6 @@
 package com.jakduk.batch.model.db;
 
-import com.jakduk.batch.common.JakdukConst;
+import com.jakduk.batch.common.Constants;
 import com.jakduk.batch.model.embedded.*;
 import lombok.*;
 import org.springframework.data.annotation.Id;
@@ -33,6 +33,6 @@ public class ArticleComment {
 	private List<CommonFeelingUser> usersDisliking;
 	private Boolean linkedGallery;
 	private List<BoardLog> logs;
-    private List<JakdukConst.BATCH_TYPE> batch;
+    private List<Constants.BATCH_TYPE> batch;
 
 }

@@ -1,6 +1,6 @@
 package com.jakduk.batch.common;
 
-public class JakdukConst {
+public class Constants {
 
     public final static Integer ARTICLE_SHORT_CONTENT_LENGTH = 100;
 

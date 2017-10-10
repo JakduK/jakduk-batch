@@ -4,7 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.jakduk.batch.common.JakdukConst;
+import com.jakduk.batch.common.Constants;
 import com.jakduk.batch.common.JakdukUtils;
 import com.jakduk.batch.common.ObjectMapperUtils;
 import com.jakduk.batch.configuration.JakdukProperties;
@@ -63,8 +63,8 @@ public class SearchService {
         try {
             CreateIndexResponse response = client.admin().indices().prepareCreate(index)
                     .setSettings(getIndexSettings())
-                    .addMapping(JakdukConst.ES_TYPE_ARTICLE, getArticleMappings())
-                    .addMapping(JakdukConst.ES_TYPE_COMMENT, getArticleCommentMappings())
+                    .addMapping(Constants.ES_TYPE_ARTICLE, getArticleMappings())
+                    .addMapping(Constants.ES_TYPE_COMMENT, getArticleCommentMappings())
                     .get();
 
             if (response.isAcknowledged()) {
@@ -85,7 +85,7 @@ public class SearchService {
         try {
             CreateIndexResponse response = client.admin().indices().prepareCreate(index)
                     .setSettings(getIndexSettings())
-                    .addMapping(JakdukConst.ES_TYPE_GALLERY, getGalleryMappings())
+                    .addMapping(Constants.ES_TYPE_GALLERY, getGalleryMappings())
                     .get();
 
             if (response.isAcknowledged()) {
@@ -105,7 +105,7 @@ public class SearchService {
         try {
             CreateIndexResponse response = client.admin().indices().prepareCreate(index)
                     .setSettings(getIndexSettings())
-                    .addMapping(JakdukConst.ES_TYPE_SEARCH_WORD, getSearchWordMappings())
+                    .addMapping(Constants.ES_TYPE_SEARCH_WORD, getSearchWordMappings())
                     .get();
 
             if (response.isAcknowledged()) {
@@ -126,7 +126,7 @@ public class SearchService {
         ObjectId lastPostId = null;
 
         do {
-            List<Article> articles = articleRepository.findPostsGreaterThanId(lastPostId, JakdukConst.ES_BULK_LIMIT);
+            List<Article> articles = articleRepository.findPostsGreaterThanId(lastPostId, Constants.ES_BULK_LIMIT);
 
             List<EsArticle> esArticles = articles.stream()
                     .filter(Objects::nonNull)
@@ -135,7 +135,7 @@ public class SearchService {
 
                         if (post.getLinkedGallery()) {
                             List<Gallery> galleries = galleryRepository.findByItemIdAndFromType(
-                                    new ObjectId(post.getId()), JakdukConst.GALLERY_FROM_TYPE.ARTICLE.name(), 1);
+                                    new ObjectId(post.getId()), Constants.GALLERY_FROM_TYPE.ARTICLE.name(), 1);
 
                             galleryIds = galleries.stream()
                                     .filter(Objects::nonNull)
@@ -166,7 +166,7 @@ public class SearchService {
             esArticles.forEach(post -> {
                 IndexRequestBuilder index = client.prepareIndex(
                         elasticsearchProperties.getIndexBoard(),
-                        JakdukConst.ES_TYPE_ARTICLE,
+                        Constants.ES_TYPE_ARTICLE,
                         post.getId()
                 );
 
@@ -182,7 +182,7 @@ public class SearchService {
 
         } while (hasPost);
 
-        bulkProcessor.awaitClose(JakdukConst.ES_AWAIT_CLOSE_TIMEOUT_MINUTES, TimeUnit.MINUTES);
+        bulkProcessor.awaitClose(Constants.ES_AWAIT_CLOSE_TIMEOUT_MINUTES, TimeUnit.MINUTES);
     }
 
     public void processBulkInsertArticleComment() throws InterruptedException {
@@ -193,7 +193,7 @@ public class SearchService {
         ObjectId lastCommentId = null;
 
         do {
-            List<ArticleComment> comments = articleCommentRepository.findCommentsGreaterThanId(lastCommentId, JakdukConst.ES_BULK_LIMIT);
+            List<ArticleComment> comments = articleCommentRepository.findCommentsGreaterThanId(lastCommentId, Constants.ES_BULK_LIMIT);
 
             List<EsComment> esComments = comments.stream()
                     .filter(Objects::nonNull)
@@ -202,7 +202,7 @@ public class SearchService {
 
                         if (comment.getLinkedGallery()) {
                             List<Gallery> galleries = galleryRepository.findByItemIdAndFromType(
-                                    new ObjectId(comment.getId()), JakdukConst.GALLERY_FROM_TYPE.ARTICLE_COMMENT.name(), 1);
+                                    new ObjectId(comment.getId()), Constants.GALLERY_FROM_TYPE.ARTICLE_COMMENT.name(), 1);
 
                             galleryIds = galleries.stream()
                                     .filter(Objects::nonNull)
@@ -231,7 +231,7 @@ public class SearchService {
                 try {
                     IndexRequestBuilder index = client.prepareIndex()
                             .setIndex(elasticsearchProperties.getIndexBoard())
-                            .setType(JakdukConst.ES_TYPE_COMMENT)
+                            .setType(Constants.ES_TYPE_COMMENT)
                             .setId(comment.getId())
                             .setParent(comment.getArticle().getId())
                             .setSource(ObjectMapperUtils.writeValueAsString(comment));
@@ -246,7 +246,7 @@ public class SearchService {
 
         } while (hasComment);
 
-        bulkProcessor.awaitClose(JakdukConst.ES_AWAIT_CLOSE_TIMEOUT_MINUTES, TimeUnit.MINUTES);
+        bulkProcessor.awaitClose(Constants.ES_AWAIT_CLOSE_TIMEOUT_MINUTES, TimeUnit.MINUTES);
     }
 
     public void processBulkInsertGallery() throws InterruptedException {
@@ -257,7 +257,7 @@ public class SearchService {
         ObjectId lastGalleryId = null;
 
         do {
-            List<EsGallery> comments = galleryRepository.findGalleriesGreaterThanId(lastGalleryId, JakdukConst.ES_BULK_LIMIT);
+            List<EsGallery> comments = galleryRepository.findGalleriesGreaterThanId(lastGalleryId, Constants.ES_BULK_LIMIT);
 
             if (comments.isEmpty()) {
                 hasGallery = false;
@@ -269,7 +269,7 @@ public class SearchService {
             comments.forEach(comment -> {
                 IndexRequestBuilder index = client.prepareIndex(
                         elasticsearchProperties.getIndexGallery(),
-                        JakdukConst.ES_TYPE_GALLERY,
+                        Constants.ES_TYPE_GALLERY,
                         comment.getId()
                 );
 
@@ -285,7 +285,7 @@ public class SearchService {
 
         } while (hasGallery);
 
-        bulkProcessor.awaitClose(JakdukConst.ES_AWAIT_CLOSE_TIMEOUT_MINUTES, TimeUnit.MINUTES);
+        bulkProcessor.awaitClose(Constants.ES_AWAIT_CLOSE_TIMEOUT_MINUTES, TimeUnit.MINUTES);
     }
 
     public void deleteIndexBoard() {
@@ -494,7 +494,7 @@ public class SearchService {
         );
 
         ObjectNode parentNode = objectMapper.createObjectNode();
-        parentNode.put("type", JakdukConst.ES_TYPE_ARTICLE);
+        parentNode.put("type", Constants.ES_TYPE_ARTICLE);
 
         ObjectNode mappings = jsonNodeFactory.objectNode();
         mappings.set("_parent", parentNode);

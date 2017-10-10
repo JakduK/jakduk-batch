@@ -1,6 +1,6 @@
 package com.jakduk.batch.repository;
 
-import com.jakduk.batch.common.JakdukConst;
+import com.jakduk.batch.common.Constants;
 import com.jakduk.batch.model.db.Gallery;
 import com.jakduk.batch.model.elasticsearch.EsGallery;
 import org.bson.types.ObjectId;
@@ -41,7 +41,7 @@ public class GalleryRepositoryImpl implements GalleryRepositoryCustom {
             aggregation = Aggregation.newAggregation(sort, limit1);
         }
 
-        AggregationResults<EsGallery> results = mongoTemplate.aggregate(aggregation, JakdukConst.COLLECTION_GALLERY, EsGallery.class);
+        AggregationResults<EsGallery> results = mongoTemplate.aggregate(aggregation, Constants.COLLECTION_GALLERY, EsGallery.class);
 
         return results.getMappedResults();
     }
@@ -52,7 +52,7 @@ public class GalleryRepositoryImpl implements GalleryRepositoryCustom {
     @Override
     public List<Gallery> findByItemIdAndFromType(ObjectId itemId, String fromType, Integer limit) {
         Query query = new Query();
-        query.addCriteria(Criteria.where("status.status").is(JakdukConst.GALLERY_STATUS_TYPE.ENABLE.name()));
+        query.addCriteria(Criteria.where("status.status").is(Constants.GALLERY_STATUS_TYPE.ENABLE.name()));
         query.addCriteria(Criteria.where("linkedItems._id").is(itemId));
         query.addCriteria(Criteria.where("linkedItems.from").is(fromType));
         query.limit(limit);

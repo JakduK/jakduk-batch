@@ -1,6 +1,5 @@
 package com.jakduk.batch.model.embedded;
 
-import com.jakduk.batch.common.JakdukConst;
 import com.jakduk.batch.model.db.UserPicture;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

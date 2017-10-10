@@ -1,6 +1,6 @@
 package com.jakduk.batch.model.db;
 
-import com.jakduk.batch.common.JakdukConst;
+import com.jakduk.batch.common.Constants;
 import com.jakduk.batch.model.embedded.ArticleStatus;
 import com.jakduk.batch.model.embedded.BoardLog;
 import com.jakduk.batch.model.embedded.CommonFeelingUser;
@@ -39,7 +39,7 @@ public class Article {
 	private List<CommonFeelingUser> usersLiking;
 	private List<CommonFeelingUser> usersDisliking;
 	private List<BoardLog> logs; // 오래된 글은 logs가 없는 경우도 있다.
-	private List<JakdukConst.BATCH_TYPE> batch;
+	private List<Constants.BATCH_TYPE> batch;
 	private String shortContent;
 	private LocalDateTime lastUpdated;
 	private Boolean linkedGallery;

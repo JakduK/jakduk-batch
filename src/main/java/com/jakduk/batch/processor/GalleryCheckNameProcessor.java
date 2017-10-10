@@ -1,6 +1,6 @@
 package com.jakduk.batch.processor;
 
-import com.jakduk.batch.common.JakdukConst;
+import com.jakduk.batch.common.Constants;
 import com.jakduk.batch.model.db.Gallery;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.batch.item.ItemProcessor;
@@ -23,11 +23,11 @@ public class GalleryCheckNameProcessor implements ItemProcessor<Gallery, Gallery
         if (StringUtils.isNoneBlank(name, fileName) && name.equals(fileName)) {
             item.setName(null);
 
-            List<JakdukConst.BATCH_TYPE> batchList = Optional.ofNullable(item.getBatch())
+            List<Constants.BATCH_TYPE> batchList = Optional.ofNullable(item.getBatch())
                     .orElseGet(ArrayList::new);
 
-            if (batchList.stream().noneMatch(batch -> batch.equals(JakdukConst.BATCH_TYPE.GALLERY_CHECK_NAME_01))) {
-                batchList.add(JakdukConst.BATCH_TYPE.GALLERY_CHECK_NAME_01);
+            if (batchList.stream().noneMatch(batch -> batch.equals(Constants.BATCH_TYPE.GALLERY_CHECK_NAME_01))) {
+                batchList.add(Constants.BATCH_TYPE.GALLERY_CHECK_NAME_01);
                 item.setBatch(batchList);
             }
         }

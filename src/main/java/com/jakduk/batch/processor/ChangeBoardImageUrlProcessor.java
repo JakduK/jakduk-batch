@@ -1,6 +1,6 @@
 package com.jakduk.batch.processor;
 
-import com.jakduk.batch.common.JakdukConst;
+import com.jakduk.batch.common.Constants;
 import com.jakduk.batch.model.db.Article;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.batch.item.ItemProcessor;
@@ -43,11 +43,11 @@ public class ChangeBoardImageUrlProcessor implements ItemProcessor<Article, Arti
 			String newContent = StringUtils.replace(item.getContent(), beforeImageUrl01, afterImageUrl);
 			item.setContent(newContent);
 
-			List<JakdukConst.BATCH_TYPE> batchList = Optional.ofNullable(item.getBatch())
+			List<Constants.BATCH_TYPE> batchList = Optional.ofNullable(item.getBatch())
 					.orElseGet(ArrayList::new);
 
-			if (batchList.stream().noneMatch(batch -> batch.equals(JakdukConst.BATCH_TYPE.CHANGE_BOARD_CONTENT_IMAGE_URL_01))) {
-				batchList.add(JakdukConst.BATCH_TYPE.CHANGE_BOARD_CONTENT_IMAGE_URL_01);
+			if (batchList.stream().noneMatch(batch -> batch.equals(Constants.BATCH_TYPE.CHANGE_BOARD_CONTENT_IMAGE_URL_01))) {
+				batchList.add(Constants.BATCH_TYPE.CHANGE_BOARD_CONTENT_IMAGE_URL_01);
 				item.setBatch(batchList);
 			}
 
@@ -55,11 +55,11 @@ public class ChangeBoardImageUrlProcessor implements ItemProcessor<Article, Arti
 			String newContent = StringUtils.replace(item.getContent(), beforeImageUrl02, afterImageUrl);
 			item.setContent(newContent);
 
-			List<JakdukConst.BATCH_TYPE> batchList = Optional.ofNullable(item.getBatch())
+			List<Constants.BATCH_TYPE> batchList = Optional.ofNullable(item.getBatch())
 					.orElseGet(ArrayList::new);
 
-			if (batchList.stream().noneMatch(batch -> batch.equals(JakdukConst.BATCH_TYPE.CHANGE_BOARD_CONTENT_IMAGE_URL_01))) {
-				batchList.add(JakdukConst.BATCH_TYPE.CHANGE_BOARD_CONTENT_IMAGE_URL_01);
+			if (batchList.stream().noneMatch(batch -> batch.equals(Constants.BATCH_TYPE.CHANGE_BOARD_CONTENT_IMAGE_URL_01))) {
+				batchList.add(Constants.BATCH_TYPE.CHANGE_BOARD_CONTENT_IMAGE_URL_01);
 				item.setBatch(batchList);
 			}
 		}

@@ -1,6 +1,6 @@
 package com.jakduk.batch.repository;
 
-import com.jakduk.batch.common.JakdukConst;
+import com.jakduk.batch.common.Constants;
 import com.jakduk.batch.model.db.Article;
 import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,7 +43,7 @@ public class ArticleRepositoryImpl implements ArticleRepositoryCustom {
             aggregation = Aggregation.newAggregation(match1, sort, limit1);
         }
 
-        AggregationResults<Article> results = mongoTemplate.aggregate(aggregation, JakdukConst.COLLECTION_ARTICLE, Article.class);
+        AggregationResults<Article> results = mongoTemplate.aggregate(aggregation, Constants.COLLECTION_ARTICLE, Article.class);
 
         return results.getMappedResults();
 

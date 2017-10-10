@@ -1,6 +1,5 @@
 package com.jakduk.batch.repository;
 
-import com.jakduk.batch.common.JakdukConst;
 import com.jakduk.batch.model.db.Gallery;
 import com.jakduk.batch.model.elasticsearch.EsGallery;
 import org.bson.types.ObjectId;

@@ -1,6 +1,6 @@
 package com.jakduk.batch.processor;
 
-import com.jakduk.batch.common.JakdukConst;
+import com.jakduk.batch.common.Constants;
 import com.jakduk.batch.model.db.Article;
 import com.jakduk.batch.model.embedded.BoardLog;
 import org.bson.types.ObjectId;
@@ -45,11 +45,11 @@ public class BoardFreeAddLastUpdatedProcessor implements ItemProcessor<Article, 
             item.setLastUpdated(LocalDateTime.ofInstant(instant, ZoneId.systemDefault()));
         }
 
-        List<JakdukConst.BATCH_TYPE> batchList = Optional.ofNullable(item.getBatch())
+        List<Constants.BATCH_TYPE> batchList = Optional.ofNullable(item.getBatch())
                 .orElseGet(ArrayList::new);
 
-        if (batchList.stream().noneMatch(batch -> batch.equals(JakdukConst.BATCH_TYPE.BOARD_FREE_ADD_LAST_UPDATED_01))) {
-            batchList.add(JakdukConst.BATCH_TYPE.BOARD_FREE_ADD_LAST_UPDATED_01);
+        if (batchList.stream().noneMatch(batch -> batch.equals(Constants.BATCH_TYPE.BOARD_FREE_ADD_LAST_UPDATED_01))) {
+            batchList.add(Constants.BATCH_TYPE.BOARD_FREE_ADD_LAST_UPDATED_01);
             item.setBatch(batchList);
         }
 
