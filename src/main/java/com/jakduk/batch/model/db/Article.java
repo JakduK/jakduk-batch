@@ -1,8 +1,8 @@
 package com.jakduk.batch.model.db;
 
 import com.jakduk.batch.common.JakdukConst;
-import com.jakduk.batch.model.embedded.BoardHistory;
-import com.jakduk.batch.model.embedded.BoardStatus;
+import com.jakduk.batch.model.embedded.ArticleStatus;
+import com.jakduk.batch.model.embedded.BoardLog;
 import com.jakduk.batch.model.embedded.CommonFeelingUser;
 import com.jakduk.batch.model.embedded.CommonWriter;
 import lombok.*;
@@ -24,55 +24,24 @@ import java.util.List;
 @Getter
 @Setter
 @Document
-public class BoardFree {
+public class Article {
 
 	@Id
 	private String id;
-
-	/**
-	 * 작성자
-	 */
-	private CommonWriter writer;
-	
-	/**
-	 * 글 제목
-	 */
-	private String subject;
-	
-	/**
-	 * 글 내용
-	 */
-	private String content;
-	
-	/**
-	 * 글 번호
-	 */
-	private int seq;
-	
-	/**
-	 * 분류 ID
-	 */
-	private JakdukConst.BOARD_CATEGORY_TYPE category;
-	
-	/**
-	 * 조회
-	 */
-	private int views;
-	
+	private Integer seq; // 글 번호
+	private ArticleStatus status;
+	private String board; // 게시판
+	private String category; // 말머리 코드
+	private CommonWriter writer; // 작성자
+	private String subject; // 글 제목
+	private String content; // 글 내용
+	private Integer views; // 읽음 수
 	private List<CommonFeelingUser> usersLiking;
-	
 	private List<CommonFeelingUser> usersDisliking;
-	
-	private BoardStatus status;
-	
-	private List<BoardHistory> history;
-
+	private List<BoardLog> logs; // 오래된 글은 logs가 없는 경우도 있다.
 	private List<JakdukConst.BATCH_TYPE> batch;
-
 	private String shortContent;
-
 	private LocalDateTime lastUpdated;
-
 	private Boolean linkedGallery;
 
 }

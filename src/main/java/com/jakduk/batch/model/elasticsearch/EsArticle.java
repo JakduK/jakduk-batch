@@ -19,20 +19,15 @@ import java.util.List;
 @AllArgsConstructor
 @Builder
 @Getter
-public class EsBoard {
+public class EsArticle {
 	
     private String id;
-	
-	private CommonWriter writer;
-	
-	private String subject;
-	
-	private String content;
-	
 	private Integer seq;
-	
+	private String board;
 	private String category;
-
+	private CommonWriter writer;
+	private String subject;
+	private String content;
 	private List<String> galleries;
 
 }

@@ -1,7 +1,7 @@
 package com.jakduk.batch.configuration;
 
 import com.jakduk.batch.common.JakdukConst;
-import com.jakduk.batch.model.db.BoardFree;
+import com.jakduk.batch.model.db.Article;
 import com.jakduk.batch.processor.BoardFreeAddShortContentProcessor;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
@@ -52,7 +52,7 @@ public class BoardFreeAddShortContentConfig {
     @Bean
     public Step boardFreeAddShortContentStep() {
         return stepBuilderFactory.get("boardFreeAddShortContentStep")
-                .<BoardFree, BoardFree>chunk(1000)
+                .<Article, Article>chunk(1000)
                 .reader(boardFreeAddShortContentReader())
                 .processor(boardFreeAddShortContentProcessor())
                 .writer(boardFreeAddShortContentWriter())
@@ -60,14 +60,14 @@ public class BoardFreeAddShortContentConfig {
     }
 
     @Bean
-    public ItemReader<BoardFree> boardFreeAddShortContentReader() {
+    public ItemReader<Article> boardFreeAddShortContentReader() {
 
         String query = String.format("{'batch':{$nin:['%s']}}",
                 JakdukConst.BATCH_TYPE.BOARD_FREE_ADD_SHORT_CONTENT_01);
 
-        MongoItemReader<BoardFree> itemReader = new MongoItemReader<>();
+        MongoItemReader<Article> itemReader = new MongoItemReader<>();
         itemReader.setTemplate(mongoOperations);
-        itemReader.setTargetType(BoardFree.class);
+        itemReader.setTargetType(Article.class);
         itemReader.setPageSize(500);
         itemReader.setQuery(query);
         Map<String, Sort.Direction> sorts = new HashMap<>();
@@ -78,13 +78,13 @@ public class BoardFreeAddShortContentConfig {
     }
 
     @Bean
-    public ItemProcessor<BoardFree, BoardFree> boardFreeAddShortContentProcessor() {
+    public ItemProcessor<Article, Article> boardFreeAddShortContentProcessor() {
         return new BoardFreeAddShortContentProcessor();
     }
 
     @Bean
-    public MongoItemWriter<BoardFree> boardFreeAddShortContentWriter() {
-        MongoItemWriter<BoardFree> writer = new MongoItemWriter<>();
+    public MongoItemWriter<Article> boardFreeAddShortContentWriter() {
+        MongoItemWriter<Article> writer = new MongoItemWriter<>();
         writer.setTemplate(mongoOperations);
 
         return writer;

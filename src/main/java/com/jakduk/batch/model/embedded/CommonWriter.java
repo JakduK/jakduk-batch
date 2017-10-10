@@ -1,6 +1,5 @@
 package com.jakduk.batch.model.embedded;
 
-import com.jakduk.batch.common.JakdukConst;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;

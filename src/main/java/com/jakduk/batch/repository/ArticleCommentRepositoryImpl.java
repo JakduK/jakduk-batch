@@ -1,6 +1,7 @@
 package com.jakduk.batch.repository;
 
-import com.jakduk.batch.model.db.BoardFreeComment;
+import com.jakduk.batch.common.JakdukConst;
+import com.jakduk.batch.model.db.ArticleComment;
 import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
@@ -19,16 +20,16 @@ import java.util.List;
  */
 
 @Repository
-public class BoardFreeCommentRepositoryImpl implements BoardFreeCommentRepositoryCustom {
+public class ArticleCommentRepositoryImpl implements ArticleCommentRepositoryCustom {
 
     @Autowired
     private MongoTemplate mongoTemplate;
 
     /**
-     * 기준 BoardFreeComment ID 이상의 BoardFreeComment 목록을 가져온다.
+     * 기준 ArticleComment ID 이상의 ArticleComment 목록을 가져온다.
      */
     @Override
-    public List<BoardFreeComment> findCommentsGreaterThanId(ObjectId objectId, Integer limit) {
+    public List<ArticleComment> findCommentsGreaterThanId(ObjectId objectId, Integer limit) {
 
         AggregationOperation match1 = Aggregation.match(Criteria.where("_id").gt(objectId));
         AggregationOperation sort = Aggregation.sort(Sort.Direction.ASC, "_id");
@@ -42,7 +43,7 @@ public class BoardFreeCommentRepositoryImpl implements BoardFreeCommentRepositor
             aggregation = Aggregation.newAggregation(sort, limit1);
         }
 
-        AggregationResults<BoardFreeComment> results = mongoTemplate.aggregate(aggregation, "boardFreeComment", BoardFreeComment.class);
+        AggregationResults<ArticleComment> results = mongoTemplate.aggregate(aggregation, JakdukConst.COLLECTION_ARTICLE_COMMENT, ArticleComment.class);
 
         return results.getMappedResults();
     }

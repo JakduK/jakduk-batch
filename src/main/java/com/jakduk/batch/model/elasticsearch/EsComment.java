@@ -1,6 +1,6 @@
 package com.jakduk.batch.model.elasticsearch;
 
-import com.jakduk.batch.model.embedded.BoardItem;
+import com.jakduk.batch.model.embedded.ArticleItem;
 import com.jakduk.batch.model.embedded.CommonWriter;
 import lombok.Builder;
 import lombok.Getter;
@@ -19,13 +19,9 @@ import java.util.List;
 public class EsComment {
 	
     private String id;
-	
-	private BoardItem boardItem;
-	
+	private ArticleItem article;
 	private CommonWriter writer;
-
 	private String content;
-
 	private List<String> galleries;
 
 }

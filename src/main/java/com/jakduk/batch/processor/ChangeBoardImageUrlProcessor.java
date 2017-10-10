@@ -1,7 +1,7 @@
 package com.jakduk.batch.processor;
 
 import com.jakduk.batch.common.JakdukConst;
-import com.jakduk.batch.model.db.BoardFree;
+import com.jakduk.batch.model.db.Article;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.batch.item.ItemProcessor;
 import org.springframework.core.env.Environment;
@@ -17,12 +17,12 @@ import java.util.stream.Stream;
  * @since 2016. 9. 5.
  */
 
-public class ChangeBoardImageUrlProcessor implements ItemProcessor<BoardFree, BoardFree> {
+public class ChangeBoardImageUrlProcessor implements ItemProcessor<Article, Article> {
 
 	@Resource
 	private Environment environment;
 
-	@Override public BoardFree process(BoardFree item) throws Exception {
+	@Override public Article process(Article item) throws Exception {
 
 		final String PROFILE_STAGING_BEFORE_IMAGE_URL_01 = "src=\"/jakduk/gallery/";
 		final String PROFILE_STAGING_BEFORE_IMAGE_URL_02 = "src=\"/jakduk-web/gallery/";
@@ -64,7 +64,7 @@ public class ChangeBoardImageUrlProcessor implements ItemProcessor<BoardFree, Bo
 			}
 		}
 
-		System.out.println("BoardFree ID = " + item.getId());
+		System.out.println("Article ID = " + item.getId());
 
 		return item;
 	}

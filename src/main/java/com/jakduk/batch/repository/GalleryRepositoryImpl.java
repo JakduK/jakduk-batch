@@ -50,7 +50,7 @@ public class GalleryRepositoryImpl implements GalleryRepositoryCustom {
      * ItemID와 FromType에 해당하는 Gallery 목록을 가져온다.
      */
     @Override
-    public List<Gallery> findByItemIdAndFromType(ObjectId itemId, JakdukConst.GALLERY_FROM_TYPE fromType, Integer limit) {
+    public List<Gallery> findByItemIdAndFromType(ObjectId itemId, String fromType, Integer limit) {
         Query query = new Query();
         query.addCriteria(Criteria.where("status.status").is(JakdukConst.GALLERY_STATUS_TYPE.ENABLE.name()));
         query.addCriteria(Criteria.where("linkedItems._id").is(itemId));

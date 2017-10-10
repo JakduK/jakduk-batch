@@ -18,6 +18,6 @@ public interface GalleryRepositoryCustom {
     /**
      * ItemID와 FromType에 해당하는 Gallery 목록을 가져온다.
      */
-    List<Gallery> findByItemIdAndFromType(ObjectId itemId, JakdukConst.GALLERY_FROM_TYPE fromType, Integer limit);
+    List<Gallery> findByItemIdAndFromType(ObjectId itemId, String fromType, Integer limit);
 
 }

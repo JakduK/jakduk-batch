@@ -3,7 +3,6 @@ package com.jakduk.batch.model.embedded;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.springframework.data.annotation.Id;
-import org.springframework.data.mongodb.core.mapping.Document;
 
 /**
  * @author <a href="mailto:phjang1983@daum.net">Jang,Pyohwan</a>
@@ -14,13 +13,10 @@ import org.springframework.data.mongodb.core.mapping.Document;
 
 @Getter
 @AllArgsConstructor
-@Document
 public class CommonFeelingUser {
 	
 	@Id
 	private String id;
-	
 	private String userId;
-	
 	private String username;
 }

@@ -1,8 +1,8 @@
 package com.jakduk.batch.processor;
 
 import com.jakduk.batch.common.JakdukConst;
-import com.jakduk.batch.model.db.BoardFree;
-import com.jakduk.batch.model.embedded.BoardHistory;
+import com.jakduk.batch.model.db.Article;
+import com.jakduk.batch.model.embedded.BoardLog;
 import org.bson.types.ObjectId;
 import org.springframework.batch.item.ItemProcessor;
 import org.springframework.util.ObjectUtils;
@@ -18,20 +18,20 @@ import java.util.Optional;
 /**
  * Created by pyohwanjang on 2017. 3. 12..
  */
-public class BoardFreeAddLastUpdatedProcessor implements ItemProcessor<BoardFree, BoardFree> {
+public class BoardFreeAddLastUpdatedProcessor implements ItemProcessor<Article, Article> {
 
     @Override
-    public BoardFree process(BoardFree item) throws Exception {
+    public Article process(Article item) throws Exception {
 
         // history 배열이 존재하면, 이곳에서 가장 최근 ID로 date를 뽑아온다.
-        if (! ObjectUtils.isEmpty(item.getHistory())) {
-            Optional<BoardHistory> oBoardHistory = item.getHistory().stream()
-                    .sorted(Comparator.comparing(BoardHistory::getId).reversed())
+        if (! ObjectUtils.isEmpty(item.getLogs())) {
+            Optional<BoardLog> oBoardHistory = item.getLogs().stream()
+                    .sorted(Comparator.comparing(BoardLog::getId).reversed())
                     .findFirst();
 
             if (oBoardHistory.isPresent()) {
-                BoardHistory boardHistory = oBoardHistory.get();
-                ObjectId objectId = new ObjectId(boardHistory.getId());
+                BoardLog boardLog = oBoardHistory.get();
+                ObjectId objectId = new ObjectId(boardLog.getId());
 
                 Instant instant = Instant.ofEpochMilli(objectId.getDate().getTime());
                 item.setLastUpdated(LocalDateTime.ofInstant(instant, ZoneId.systemDefault()));

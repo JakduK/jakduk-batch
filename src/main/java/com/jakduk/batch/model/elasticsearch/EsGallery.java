@@ -18,8 +18,6 @@ import lombok.Setter;
 public class EsGallery {
 
     private String id;
-	
 	private String name;
-	
 	private CommonWriter writer;
 }

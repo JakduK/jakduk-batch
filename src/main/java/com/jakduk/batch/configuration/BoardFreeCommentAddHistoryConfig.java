@@ -1,7 +1,7 @@
 package com.jakduk.batch.configuration;
 
 import com.jakduk.batch.common.JakdukConst;
-import com.jakduk.batch.model.db.BoardFreeComment;
+import com.jakduk.batch.model.db.ArticleComment;
 import com.jakduk.batch.processor.BoardFreeCommentAddHistoryProcessor;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
@@ -51,7 +51,7 @@ public class BoardFreeCommentAddHistoryConfig {
     @Bean
     public Step boardFreeCommentAddHistoryStep() {
         return stepBuilderFactory.get("boardFreeCommentAddHistoryStep")
-                .<BoardFreeComment, BoardFreeComment>chunk(1000)
+                .<ArticleComment, ArticleComment>chunk(1000)
                 .reader(boardFreeCommentAddHistoryReader())
                 .processor(boardFreeCommentAddHistoryProcessor())
                 .writer(boardFreeCommentAddHistoryWriter())
@@ -59,13 +59,13 @@ public class BoardFreeCommentAddHistoryConfig {
     }
 
     @Bean
-    public ItemReader<BoardFreeComment> boardFreeCommentAddHistoryReader() {
+    public ItemReader<ArticleComment> boardFreeCommentAddHistoryReader() {
         String query = String.format("{'batch':{$nin:['%s']}}",
                 JakdukConst.BATCH_TYPE.BOARD_FREE_COMMENT_ADD_HISTORY_01);
 
-        MongoItemReader<BoardFreeComment> itemReader = new MongoItemReader<>();
+        MongoItemReader<ArticleComment> itemReader = new MongoItemReader<>();
         itemReader.setTemplate(mongoOperations);
-        itemReader.setTargetType(BoardFreeComment.class);
+        itemReader.setTargetType(ArticleComment.class);
         itemReader.setPageSize(1000);
         itemReader.setQuery(query);
         Map<String, Sort.Direction> sorts = new HashMap<>();
@@ -76,13 +76,13 @@ public class BoardFreeCommentAddHistoryConfig {
     }
 
     @Bean
-    public ItemProcessor<BoardFreeComment, BoardFreeComment> boardFreeCommentAddHistoryProcessor() {
+    public ItemProcessor<ArticleComment, ArticleComment> boardFreeCommentAddHistoryProcessor() {
         return new BoardFreeCommentAddHistoryProcessor();
     }
 
     @Bean
-    public MongoItemWriter<BoardFreeComment> boardFreeCommentAddHistoryWriter() {
-        MongoItemWriter<BoardFreeComment> writer = new MongoItemWriter<>();
+    public MongoItemWriter<ArticleComment> boardFreeCommentAddHistoryWriter() {
+        MongoItemWriter<ArticleComment> writer = new MongoItemWriter<>();
         writer.setTemplate(mongoOperations);
 
         return writer;

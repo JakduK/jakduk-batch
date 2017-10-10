@@ -21,27 +21,18 @@ import java.util.List;
 @Getter
 @Setter
 @Document
-public class BoardFreeComment {
+public class ArticleComment {
 
 	@Id
 	private String id;
-	
-	private BoardItem boardItem;
-
-	private BoardCommentStatus status;
-
+	private ArticleItem article;
+	private ArticleCommentStatus status;
 	private CommonWriter writer;
-
 	private String content;
-
 	private List<CommonFeelingUser> usersLiking;
-
 	private List<CommonFeelingUser> usersDisliking;
-
 	private Boolean linkedGallery;
-
-	private List<BoardHistory> history;
-
+	private List<BoardLog> logs;
     private List<JakdukConst.BATCH_TYPE> batch;
 
 }
