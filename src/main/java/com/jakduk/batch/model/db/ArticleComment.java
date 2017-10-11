@@ -1,6 +1,6 @@
 package com.jakduk.batch.model.db;
 
-import com.jakduk.batch.common.JakdukConst;
+import com.jakduk.batch.common.Constants;
 import com.jakduk.batch.model.embedded.*;
 import lombok.*;
 import org.springframework.data.annotation.Id;
@@ -21,27 +21,18 @@ import java.util.List;
 @Getter
 @Setter
 @Document
-public class BoardFreeComment {
+public class ArticleComment {
 
 	@Id
 	private String id;
-	
-	private BoardItem boardItem;
-
-	private BoardCommentStatus status;
-
+	private ArticleItem article;
+	private ArticleCommentStatus status;
 	private CommonWriter writer;
-
 	private String content;
-
 	private List<CommonFeelingUser> usersLiking;
-
 	private List<CommonFeelingUser> usersDisliking;
-
 	private Boolean linkedGallery;
-
-	private List<BoardHistory> history;
-
-    private List<JakdukConst.BATCH_TYPE> batch;
+	private List<BoardLog> logs;
+    private List<Constants.BATCH_TYPE> batch;
 
 }

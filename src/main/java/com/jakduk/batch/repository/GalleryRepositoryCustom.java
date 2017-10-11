@@ -1,6 +1,5 @@
 package com.jakduk.batch.repository;
 
-import com.jakduk.batch.common.JakdukConst;
 import com.jakduk.batch.model.db.Gallery;
 import com.jakduk.batch.model.elasticsearch.EsGallery;
 import org.bson.types.ObjectId;
@@ -18,6 +17,6 @@ public interface GalleryRepositoryCustom {
     /**
      * ItemID와 FromType에 해당하는 Gallery 목록을 가져온다.
      */
-    List<Gallery> findByItemIdAndFromType(ObjectId itemId, JakdukConst.GALLERY_FROM_TYPE fromType, Integer limit);
+    List<Gallery> findByItemIdAndFromType(ObjectId itemId, String fromType, Integer limit);
 
 }

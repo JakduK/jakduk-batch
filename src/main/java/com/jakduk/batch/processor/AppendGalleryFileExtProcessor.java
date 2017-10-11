@@ -1,12 +1,11 @@
 package com.jakduk.batch.processor;
 
-import com.jakduk.batch.common.JakdukConst;
+import com.jakduk.batch.common.Constants;
 import com.jakduk.batch.configuration.JakdukProperties;
 import com.jakduk.batch.model.db.Gallery;
 import org.apache.commons.lang3.StringUtils;
 import org.bson.types.ObjectId;
 import org.springframework.batch.item.ItemProcessor;
-import org.springframework.beans.factory.annotation.Value;
 
 import javax.annotation.Resource;
 import java.nio.file.*;
@@ -43,11 +42,11 @@ public class AppendGalleryFileExtProcessor implements ItemProcessor<Gallery, Gal
             Files.move(moveFromImage, moveFromImage.resolveSibling(item.getId() + "." + formatName), StandardCopyOption.REPLACE_EXISTING);
             Files.move(moveFromThumb, moveFromThumb.resolveSibling(item.getId() + "." + formatName), StandardCopyOption.REPLACE_EXISTING);
 
-            List<JakdukConst.BATCH_TYPE> batchList = Optional.ofNullable(item.getBatch())
+            List<Constants.BATCH_TYPE> batchList = Optional.ofNullable(item.getBatch())
                     .orElseGet(ArrayList::new);
 
-            if (batchList.stream().noneMatch(batch -> batch.equals(JakdukConst.BATCH_TYPE.APPEND_GALLERY_FILE_EXT_01))) {
-                batchList.add(JakdukConst.BATCH_TYPE.APPEND_GALLERY_FILE_EXT_01);
+            if (batchList.stream().noneMatch(batch -> batch.equals(Constants.BATCH_TYPE.APPEND_GALLERY_FILE_EXT_01))) {
+                batchList.add(Constants.BATCH_TYPE.APPEND_GALLERY_FILE_EXT_01);
                 item.setBatch(batchList);
             }
 

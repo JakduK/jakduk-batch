@@ -91,8 +91,8 @@ public class InitElasticsearchIndexConfig {
         return stepBuilderFactory.get("initSearchDocumentsStep")
                 .tasklet((contribution, chunkContext) -> {
 
-                    searchService.processBulkInsertBoard();
-                    searchService.processBulkInsertComment();
+                    searchService.processBulkInsertArticle();
+                    searchService.processBulkInsertArticleComment();
                     searchService.processBulkInsertGallery();
 
                     return RepeatStatus.FINISHED;

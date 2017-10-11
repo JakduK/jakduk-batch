@@ -1,12 +1,12 @@
 package com.jakduk.batch.common;
 
-public class JakdukConst {
+public class Constants {
 
-    public final static Integer BOARD_SHORT_CONTENT_LENGTH = 100;
+    public final static Integer ARTICLE_SHORT_CONTENT_LENGTH = 100;
 
     public final static Integer ES_BULK_LIMIT = 1000;
     public final static Integer ES_AWAIT_CLOSE_TIMEOUT_MINUTES = 2;
-    public final static String ES_TYPE_BOARD = "board";
+    public final static String ES_TYPE_ARTICLE = "article";
     public final static String ES_TYPE_COMMENT = "comment";
     public final static String ES_TYPE_GALLERY = "gallery";
     public final static String ES_TYPE_SEARCH_WORD = "search_word";
@@ -14,17 +14,9 @@ public class JakdukConst {
     /**
      * mongoDB collection 이름
      */
-    public final static String COLLECTION_BOARD_FREE = "boardFree";
+    public final static String COLLECTION_ARTICLE = "article";
+    public final static String COLLECTION_ARTICLE_COMMENT = "articleComment";
     public final static String COLLECTION_GALLERY = "gallery";
-
-    /**
-     * 게시판 말머리 종류.
-     */
-    public enum BOARD_CATEGORY_TYPE {
-        ALL,		// 전체
-        FREE,		// 자유
-        FOOTBALL	// 축구
-    }
 
     /**
      * 사진 상태값.
@@ -59,8 +51,8 @@ public class JakdukConst {
      * 사진을 등록한 출처
      */
     public enum GALLERY_FROM_TYPE {
-        BOARD_FREE,
-        BOARD_FREE_COMMENT
+        ARTICLE,
+        ARTICLE_COMMENT
     }
 
 }

@@ -1,6 +1,6 @@
 package com.jakduk.batch.model.db;
 
-import com.jakduk.batch.common.JakdukConst;
+import com.jakduk.batch.common.Constants;
 import lombok.*;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.DBRef;
@@ -24,7 +24,7 @@ public class UserPicture {
     @Setter
     private User user;
 
-    @Setter private JakdukConst.GALLERY_STATUS_TYPE status;
+    @Setter private Constants.GALLERY_STATUS_TYPE status;
 
     private String contentType;
 

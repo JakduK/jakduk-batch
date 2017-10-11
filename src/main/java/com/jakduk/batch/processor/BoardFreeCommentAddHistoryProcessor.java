@@ -1,8 +1,9 @@
 package com.jakduk.batch.processor;
 
-import com.jakduk.batch.common.JakdukConst;
-import com.jakduk.batch.model.db.BoardFreeComment;
-import com.jakduk.batch.model.embedded.BoardHistory;
+import com.jakduk.batch.common.Constants;
+import com.jakduk.batch.model.db.ArticleComment;
+import com.jakduk.batch.model.embedded.BoardLog;
+import com.jakduk.batch.model.embedded.SimpleWriter;
 import lombok.extern.slf4j.Slf4j;
 import org.bson.types.ObjectId;
 import org.springframework.batch.item.ItemProcessor;
@@ -13,12 +14,12 @@ import java.util.List;
 import java.util.Optional;
 
 @Slf4j
-public class BoardFreeCommentAddHistoryProcessor implements ItemProcessor<BoardFreeComment, BoardFreeComment> {
+public class BoardFreeCommentAddHistoryProcessor implements ItemProcessor<ArticleComment, ArticleComment> {
 
     @Override
-    public BoardFreeComment process(BoardFreeComment item) throws Exception {
+    public ArticleComment process(ArticleComment item) throws Exception {
 
-        List<BoardHistory> histories = item.getHistory();
+        List<BoardLog> histories = item.getLogs();
 
         if (CollectionUtils.isEmpty(histories))
             histories = new ArrayList<>();
@@ -26,14 +27,14 @@ public class BoardFreeCommentAddHistoryProcessor implements ItemProcessor<BoardF
         ObjectId boardFreeCommentId = new ObjectId(item.getId());
         ObjectId historyId = new ObjectId(boardFreeCommentId.getDate());
 
-        histories.add(new BoardHistory(historyId.toHexString(), JakdukConst.BOARD_FREE_COMMENT_HISTORY_TYPE.CREATE.name(), item.getWriter()));
-        item.setHistory(histories);
+        histories.add(new BoardLog(historyId.toHexString(), Constants.BOARD_FREE_COMMENT_HISTORY_TYPE.CREATE.name(), new SimpleWriter(item.getWriter())));
+        item.setLogs(histories);
 
-        List<JakdukConst.BATCH_TYPE> batchList = Optional.ofNullable(item.getBatch())
+        List<Constants.BATCH_TYPE> batchList = Optional.ofNullable(item.getBatch())
                 .orElseGet(ArrayList::new);
 
-        if (batchList.stream().noneMatch(batch -> batch.equals(JakdukConst.BATCH_TYPE.BOARD_FREE_COMMENT_ADD_HISTORY_01))) {
-            batchList.add(JakdukConst.BATCH_TYPE.BOARD_FREE_COMMENT_ADD_HISTORY_01);
+        if (batchList.stream().noneMatch(batch -> batch.equals(Constants.BATCH_TYPE.BOARD_FREE_COMMENT_ADD_HISTORY_01))) {
+            batchList.add(Constants.BATCH_TYPE.BOARD_FREE_COMMENT_ADD_HISTORY_01);
             item.setBatch(batchList);
         }
 

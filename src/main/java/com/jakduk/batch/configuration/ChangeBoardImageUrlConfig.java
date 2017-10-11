@@ -1,6 +1,6 @@
 package com.jakduk.batch.configuration;
 
-import com.jakduk.batch.model.db.BoardFree;
+import com.jakduk.batch.model.db.Article;
 import com.jakduk.batch.processor.ChangeBoardImageUrlProcessor;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
@@ -47,7 +47,7 @@ public class ChangeBoardImageUrlConfig {
 	@Bean
 	public Step changeBoardImageUrlStep01() {
 		return stepBuilderFactory.get("changeBoardImageUrlStep01")
-				.<BoardFree, BoardFree>chunk(1000)
+				.<Article, Article>chunk(1000)
 				.reader(changeBoardImageUrlReader())
 				.processor(changeBoardImageUrlProcessor())
 				.writer(changeBoardImageUrlWriter())
@@ -55,10 +55,10 @@ public class ChangeBoardImageUrlConfig {
 	}
 
 	@Bean
-	public ItemReader<BoardFree> changeBoardImageUrlReader() {
-		MongoItemReader<BoardFree> itemReader = new MongoItemReader<>();
+	public ItemReader<Article> changeBoardImageUrlReader() {
+		MongoItemReader<Article> itemReader = new MongoItemReader<>();
 		itemReader.setTemplate(mongoOperations);
-		itemReader.setTargetType(BoardFree.class);
+		itemReader.setTargetType(Article.class);
 		itemReader.setPageSize(100);
 		itemReader.setQuery("{'galleries':{$exists:true}, 'batch':{$nin:['CHANGE_BOARD_CONTENT_IMAGE_URL_01']}}");
 		Map<String, Sort.Direction> sorts = new HashMap<>();
@@ -69,13 +69,13 @@ public class ChangeBoardImageUrlConfig {
 	}
 
 	@Bean
-	public ItemProcessor<BoardFree, BoardFree> changeBoardImageUrlProcessor() {
+	public ItemProcessor<Article, Article> changeBoardImageUrlProcessor() {
 		return new ChangeBoardImageUrlProcessor();
 	}
 
 	@Bean
-	public MongoItemWriter<BoardFree> changeBoardImageUrlWriter() {
-		MongoItemWriter<BoardFree> writer = new MongoItemWriter<>();
+	public MongoItemWriter<Article> changeBoardImageUrlWriter() {
+		MongoItemWriter<Article> writer = new MongoItemWriter<>();
 		writer.setTemplate(mongoOperations);
 
 		return writer;

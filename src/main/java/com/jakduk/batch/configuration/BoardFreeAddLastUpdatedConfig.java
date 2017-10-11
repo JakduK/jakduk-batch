@@ -1,7 +1,7 @@
 package com.jakduk.batch.configuration;
 
-import com.jakduk.batch.common.JakdukConst;
-import com.jakduk.batch.model.db.BoardFree;
+import com.jakduk.batch.common.Constants;
+import com.jakduk.batch.model.db.Article;
 import com.jakduk.batch.processor.BoardFreeAddLastUpdatedProcessor;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
@@ -47,7 +47,7 @@ public class BoardFreeAddLastUpdatedConfig {
     @Bean
     public Step boardFreeAddLastUpdatedStep() {
         return stepBuilderFactory.get("boardFreeAddLastUpdatedStep")
-                .<BoardFree, BoardFree>chunk(1000)
+                .<Article, Article>chunk(1000)
                 .reader(boardFreeAddLastUpdatedReader())
                 .processor(boardFreeAddLastUpdatedProcessor())
                 .writer(boardFreeAddLastUpdatedWriter())
@@ -55,14 +55,14 @@ public class BoardFreeAddLastUpdatedConfig {
     }
 
     @Bean
-    public ItemReader<BoardFree> boardFreeAddLastUpdatedReader() {
+    public ItemReader<Article> boardFreeAddLastUpdatedReader() {
 
         String query = String.format("{'batch':{$nin:['%s']}}",
-                JakdukConst.BATCH_TYPE.BOARD_FREE_ADD_LAST_UPDATED_01);
+                Constants.BATCH_TYPE.BOARD_FREE_ADD_LAST_UPDATED_01);
 
-        MongoItemReader<BoardFree> itemReader = new MongoItemReader<>();
+        MongoItemReader<Article> itemReader = new MongoItemReader<>();
         itemReader.setTemplate(mongoOperations);
-        itemReader.setTargetType(BoardFree.class);
+        itemReader.setTargetType(Article.class);
         itemReader.setPageSize(1000);
         itemReader.setQuery(query);
         Map<String, Sort.Direction> sorts = new HashMap<>();
@@ -73,13 +73,13 @@ public class BoardFreeAddLastUpdatedConfig {
     }
 
     @Bean
-    public ItemProcessor<BoardFree, BoardFree> boardFreeAddLastUpdatedProcessor() {
+    public ItemProcessor<Article, Article> boardFreeAddLastUpdatedProcessor() {
         return new BoardFreeAddLastUpdatedProcessor();
     }
 
     @Bean
-    public MongoItemWriter<BoardFree> boardFreeAddLastUpdatedWriter() {
-        MongoItemWriter<BoardFree> writer = new MongoItemWriter<>();
+    public MongoItemWriter<Article> boardFreeAddLastUpdatedWriter() {
+        MongoItemWriter<Article> writer = new MongoItemWriter<>();
         writer.setTemplate(mongoOperations);
 
         return writer;

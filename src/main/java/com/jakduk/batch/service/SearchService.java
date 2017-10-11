@@ -4,20 +4,21 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.jakduk.batch.common.JakdukConst;
+import com.jakduk.batch.common.Constants;
 import com.jakduk.batch.common.JakdukUtils;
 import com.jakduk.batch.common.ObjectMapperUtils;
 import com.jakduk.batch.configuration.JakdukProperties;
-import com.jakduk.batch.model.db.BoardFree;
-import com.jakduk.batch.model.db.BoardFreeComment;
+import com.jakduk.batch.model.db.Article;
+import com.jakduk.batch.model.db.ArticleComment;
 import com.jakduk.batch.model.db.Gallery;
-import com.jakduk.batch.model.elasticsearch.EsBoard;
+import com.jakduk.batch.model.elasticsearch.EsArticle;
 import com.jakduk.batch.model.elasticsearch.EsComment;
 import com.jakduk.batch.model.elasticsearch.EsGallery;
-import com.jakduk.batch.repository.BoardFreeCommentRepository;
-import com.jakduk.batch.repository.BoardFreeRepository;
+import com.jakduk.batch.repository.ArticleCommentRepository;
+import com.jakduk.batch.repository.ArticleRepository;
 import com.jakduk.batch.repository.GalleryRepository;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.bson.types.ObjectId;
 import org.elasticsearch.action.admin.indices.create.CreateIndexResponse;
 import org.elasticsearch.action.admin.indices.delete.DeleteIndexRequest;
@@ -51,9 +52,9 @@ public class SearchService {
     @Resource private JakdukProperties.Elasticsearch elasticsearchProperties;
 
     @Autowired private Client client;
-    @Autowired private BoardFreeRepository boardFreeRepository;
+    @Autowired private ArticleRepository articleRepository;
     @Autowired private GalleryRepository galleryRepository;
-    @Autowired private BoardFreeCommentRepository boardFreeCommentRepository;
+    @Autowired private ArticleCommentRepository articleCommentRepository;
 
     public void createIndexBoard() {
 
@@ -62,8 +63,8 @@ public class SearchService {
         try {
             CreateIndexResponse response = client.admin().indices().prepareCreate(index)
                     .setSettings(getIndexSettings())
-                    .addMapping(JakdukConst.ES_TYPE_BOARD, getBoardFreeMappings())
-                    .addMapping(JakdukConst.ES_TYPE_COMMENT, getBoardFreeCommentMappings())
+                    .addMapping(Constants.ES_TYPE_ARTICLE, getArticleMappings())
+                    .addMapping(Constants.ES_TYPE_COMMENT, getArticleCommentMappings())
                     .get();
 
             if (response.isAcknowledged()) {
@@ -84,7 +85,7 @@ public class SearchService {
         try {
             CreateIndexResponse response = client.admin().indices().prepareCreate(index)
                     .setSettings(getIndexSettings())
-                    .addMapping(JakdukConst.ES_TYPE_GALLERY, getGalleryMappings())
+                    .addMapping(Constants.ES_TYPE_GALLERY, getGalleryMappings())
                     .get();
 
             if (response.isAcknowledged()) {
@@ -104,7 +105,7 @@ public class SearchService {
         try {
             CreateIndexResponse response = client.admin().indices().prepareCreate(index)
                     .setSettings(getIndexSettings())
-                    .addMapping(JakdukConst.ES_TYPE_SEARCH_WORD, getSearchWordMappings())
+                    .addMapping(Constants.ES_TYPE_SEARCH_WORD, getSearchWordMappings())
                     .get();
 
             if (response.isAcknowledged()) {
@@ -117,7 +118,7 @@ public class SearchService {
         }
     }
 
-    public void processBulkInsertBoard() throws InterruptedException {
+    public void processBulkInsertArticle() throws InterruptedException {
 
         BulkProcessor bulkProcessor = getBulkProcessor();
 
@@ -125,16 +126,16 @@ public class SearchService {
         ObjectId lastPostId = null;
 
         do {
-            List<BoardFree> posts = boardFreeRepository.findPostsGreaterThanId(lastPostId, JakdukConst.ES_BULK_LIMIT);
+            List<Article> articles = articleRepository.findPostsGreaterThanId(lastPostId, Constants.ES_BULK_LIMIT);
 
-            List<EsBoard> esBoards = posts.stream()
+            List<EsArticle> esArticles = articles.stream()
                     .filter(Objects::nonNull)
                     .map(post -> {
                         List<String> galleryIds = null;
 
                         if (post.getLinkedGallery()) {
                             List<Gallery> galleries = galleryRepository.findByItemIdAndFromType(
-                                    new ObjectId(post.getId()), JakdukConst.GALLERY_FROM_TYPE.BOARD_FREE, 1);
+                                    new ObjectId(post.getId()), Constants.GALLERY_FROM_TYPE.ARTICLE.name(), 1);
 
                             galleryIds = galleries.stream()
                                     .filter(Objects::nonNull)
@@ -142,29 +143,30 @@ public class SearchService {
                                     .collect(Collectors.toList());
                         }
 
-                        return EsBoard.builder()
+                        return EsArticle.builder()
                                 .id(post.getId())
                                 .seq(post.getSeq())
+                                .board(post.getBoard())
                                 .writer(post.getWriter())
                                 .subject(JakdukUtils.stripHtmlTag(post.getSubject()))
                                 .content(JakdukUtils.stripHtmlTag(post.getContent()))
-                                .category(Objects.nonNull(post.getCategory()) ? post.getCategory().name() : null)
+                                .category(StringUtils.defaultIfBlank(post.getCategory(), null))
                                 .galleries(galleryIds)
                                 .build();
                     })
                     .collect(Collectors.toList());
 
-            if (esBoards.isEmpty()) {
+            if (esArticles.isEmpty()) {
                 hasPost = false;
             } else {
-                EsBoard lastPost = esBoards.get(esBoards.size() - 1);
+                EsArticle lastPost = esArticles.get(esArticles.size() - 1);
                 lastPostId = new ObjectId(lastPost.getId());
             }
 
-            esBoards.forEach(post -> {
+            esArticles.forEach(post -> {
                 IndexRequestBuilder index = client.prepareIndex(
                         elasticsearchProperties.getIndexBoard(),
-                        JakdukConst.ES_TYPE_BOARD,
+                        Constants.ES_TYPE_ARTICLE,
                         post.getId()
                 );
 
@@ -180,10 +182,10 @@ public class SearchService {
 
         } while (hasPost);
 
-        bulkProcessor.awaitClose(JakdukConst.ES_AWAIT_CLOSE_TIMEOUT_MINUTES, TimeUnit.MINUTES);
+        bulkProcessor.awaitClose(Constants.ES_AWAIT_CLOSE_TIMEOUT_MINUTES, TimeUnit.MINUTES);
     }
 
-    public void processBulkInsertComment() throws InterruptedException {
+    public void processBulkInsertArticleComment() throws InterruptedException {
 
         BulkProcessor bulkProcessor = getBulkProcessor();
 
@@ -191,7 +193,7 @@ public class SearchService {
         ObjectId lastCommentId = null;
 
         do {
-            List<BoardFreeComment> comments = boardFreeCommentRepository.findCommentsGreaterThanId(lastCommentId, JakdukConst.ES_BULK_LIMIT);
+            List<ArticleComment> comments = articleCommentRepository.findCommentsGreaterThanId(lastCommentId, Constants.ES_BULK_LIMIT);
 
             List<EsComment> esComments = comments.stream()
                     .filter(Objects::nonNull)
@@ -200,7 +202,7 @@ public class SearchService {
 
                         if (comment.getLinkedGallery()) {
                             List<Gallery> galleries = galleryRepository.findByItemIdAndFromType(
-                                    new ObjectId(comment.getId()), JakdukConst.GALLERY_FROM_TYPE.BOARD_FREE_COMMENT, 1);
+                                    new ObjectId(comment.getId()), Constants.GALLERY_FROM_TYPE.ARTICLE_COMMENT.name(), 1);
 
                             galleryIds = galleries.stream()
                                     .filter(Objects::nonNull)
@@ -210,7 +212,7 @@ public class SearchService {
 
                         return EsComment.builder()
                                 .id(comment.getId())
-                                .boardItem(comment.getBoardItem())
+                                .article(comment.getArticle())
                                 .writer(comment.getWriter())
                                 .content(JakdukUtils.stripHtmlTag(comment.getContent()))
                                 .galleries(galleryIds)
@@ -229,9 +231,9 @@ public class SearchService {
                 try {
                     IndexRequestBuilder index = client.prepareIndex()
                             .setIndex(elasticsearchProperties.getIndexBoard())
-                            .setType(JakdukConst.ES_TYPE_COMMENT)
+                            .setType(Constants.ES_TYPE_COMMENT)
                             .setId(comment.getId())
-                            .setParent(comment.getBoardItem().getId())
+                            .setParent(comment.getArticle().getId())
                             .setSource(ObjectMapperUtils.writeValueAsString(comment));
 
                     bulkProcessor.add(index.request());
@@ -244,7 +246,7 @@ public class SearchService {
 
         } while (hasComment);
 
-        bulkProcessor.awaitClose(JakdukConst.ES_AWAIT_CLOSE_TIMEOUT_MINUTES, TimeUnit.MINUTES);
+        bulkProcessor.awaitClose(Constants.ES_AWAIT_CLOSE_TIMEOUT_MINUTES, TimeUnit.MINUTES);
     }
 
     public void processBulkInsertGallery() throws InterruptedException {
@@ -255,7 +257,7 @@ public class SearchService {
         ObjectId lastGalleryId = null;
 
         do {
-            List<EsGallery> comments = galleryRepository.findGalleriesGreaterThanId(lastGalleryId, JakdukConst.ES_BULK_LIMIT);
+            List<EsGallery> comments = galleryRepository.findGalleriesGreaterThanId(lastGalleryId, Constants.ES_BULK_LIMIT);
 
             if (comments.isEmpty()) {
                 hasGallery = false;
@@ -267,7 +269,7 @@ public class SearchService {
             comments.forEach(comment -> {
                 IndexRequestBuilder index = client.prepareIndex(
                         elasticsearchProperties.getIndexGallery(),
-                        JakdukConst.ES_TYPE_GALLERY,
+                        Constants.ES_TYPE_GALLERY,
                         comment.getId()
                 );
 
@@ -283,7 +285,7 @@ public class SearchService {
 
         } while (hasGallery);
 
-        bulkProcessor.awaitClose(JakdukConst.ES_AWAIT_CLOSE_TIMEOUT_MINUTES, TimeUnit.MINUTES);
+        bulkProcessor.awaitClose(Constants.ES_AWAIT_CLOSE_TIMEOUT_MINUTES, TimeUnit.MINUTES);
     }
 
     public void deleteIndexBoard() {
@@ -383,6 +385,7 @@ public class SearchService {
         };
 
         return Settings.builder()
+
                 .put("index.analysis.analyzer.korean.type", "custom")
                 .put("index.analysis.analyzer.korean.tokenizer", "seunjeon_default_tokenizer")
                 .putArray("index.analysis.tokenizer.seunjeon_default_tokenizer.user_words", userWords)
@@ -393,17 +396,33 @@ public class SearchService {
                         "N", "SL", "SH", "SN", "XR", "V", "UNK", "I", "M");
     }
 
-    private String getBoardFreeMappings() throws JsonProcessingException {
+    private String getArticleMappings() throws JsonProcessingException {
 
         ObjectMapper objectMapper = ObjectMapperUtils.getObjectMapper();
-
         JsonNodeFactory jsonNodeFactory = JsonNodeFactory.instance;
-
         ObjectNode propertiesNode = jsonNodeFactory.objectNode();
 
         propertiesNode.set("id",
                 jsonNodeFactory.objectNode()
                         .put("type", "string"));
+
+        propertiesNode.set("seq",
+                jsonNodeFactory.objectNode()
+                        .put("type", "integer")
+                        .put("index", "no")
+        );
+
+        propertiesNode.set("board",
+                jsonNodeFactory.objectNode()
+                        .put("type", "string")
+                        .put("index", "not_analyzed")
+        );
+
+        propertiesNode.set("category",
+                jsonNodeFactory.objectNode()
+                        .put("type", "string")
+                        .put("index", "not_analyzed")
+        );
 
         propertiesNode.set("subject",
                 jsonNodeFactory.objectNode()
@@ -415,18 +434,6 @@ public class SearchService {
                 jsonNodeFactory.objectNode()
                         .put("type", "string")
                         .put("analyzer", "korean")
-        );
-
-        propertiesNode.set("seq",
-                jsonNodeFactory.objectNode()
-                        .put("type", "integer")
-                        .put("index", "no")
-        );
-
-        propertiesNode.set("category",
-                jsonNodeFactory.objectNode()
-                        .put("type", "string")
-                        .put("index", "not_analyzed")
         );
 
         propertiesNode.set("galleries",
@@ -452,64 +459,44 @@ public class SearchService {
         return objectMapper.writeValueAsString(mappings);
     }
 
-    private String getBoardFreeCommentMappings() throws JsonProcessingException {
+    private String getArticleCommentMappings() throws JsonProcessingException {
+
         ObjectMapper objectMapper = ObjectMapperUtils.getObjectMapper();
+        JsonNodeFactory jsonNodeFactory = JsonNodeFactory.instance;
+        ObjectNode propertiesNode = jsonNodeFactory.objectNode();
 
-        ObjectNode idNode = objectMapper.createObjectNode();
-        idNode.put("type", "string");
+        propertiesNode.set("id",
+                jsonNodeFactory.objectNode()
+                        .put("type", "string"));
 
-        ObjectNode contentNode = objectMapper.createObjectNode();
-        contentNode.put("type", "string");
-        contentNode.put("analyzer", "korean");
+        ObjectNode articleNode = jsonNodeFactory.objectNode();
+        articleNode.set("id", jsonNodeFactory.objectNode().put("type", "string").put("index", "no"));
+        articleNode.set("seq", jsonNodeFactory.objectNode().put("type", "integer").put("index", "no"));
+        articleNode.set("board", jsonNodeFactory.objectNode().put("type", "string").put("index", "no"));
+        propertiesNode.set("article", jsonNodeFactory.objectNode().set("properties", articleNode));
 
-        // boardItem
-        ObjectNode boardItemIdNode = objectMapper.createObjectNode();
-        boardItemIdNode.put("type", "string");
-        boardItemIdNode.put("index", "no");
+        ObjectNode writerNode = jsonNodeFactory.objectNode();
+        writerNode.set("providerId", jsonNodeFactory.objectNode().put("type", "string").put("index", "no"));
+        writerNode.set("userId", jsonNodeFactory.objectNode().put("type", "string").put("index", "no"));
+        writerNode.set("username", jsonNodeFactory.objectNode().put("type", "string").put("index", "no"));
+        propertiesNode.set("writer", jsonNodeFactory.objectNode().set("properties", writerNode));
 
-        ObjectNode boardItemSeqNode = objectMapper.createObjectNode();
-        boardItemSeqNode.put("type", "integer");
-        boardItemSeqNode.put("index", "no");
+        propertiesNode.set("content",
+                jsonNodeFactory.objectNode()
+                        .put("type", "string")
+                        .put("analyzer", "korean")
+        );
 
-        ObjectNode boardItemPropertiesNode = objectMapper.createObjectNode();
-        boardItemPropertiesNode.set("id", boardItemIdNode);
-        boardItemPropertiesNode.set("seq", boardItemSeqNode);
-
-        ObjectNode boardItemNode = objectMapper.createObjectNode();
-        boardItemNode.set("properties", boardItemPropertiesNode);
-
-        // writer
-        ObjectNode writerProviderIdNode = objectMapper.createObjectNode();
-        writerProviderIdNode.put("type", "string");
-        writerProviderIdNode.put("index", "no");
-
-        ObjectNode writerUserIdNode = objectMapper.createObjectNode();
-        writerUserIdNode.put("type", "string");
-        writerUserIdNode.put("index", "no");
-
-        ObjectNode writerUsernameNode = objectMapper.createObjectNode();
-        writerUsernameNode.put("type", "string");
-        writerUsernameNode.put("index", "no");
-
-        ObjectNode writerPropertiesNode = objectMapper.createObjectNode();
-        writerPropertiesNode.set("providerId", writerProviderIdNode);
-        writerPropertiesNode.set("userId", writerUserIdNode);
-        writerPropertiesNode.set("username", writerUsernameNode);
-
-        ObjectNode writerNode = objectMapper.createObjectNode();
-        writerNode.set("properties", writerPropertiesNode);
-
-        // properties
-        ObjectNode propertiesNode = objectMapper.createObjectNode();
-        propertiesNode.set("id", idNode);
-        propertiesNode.set("content", contentNode);
-        propertiesNode.set("writer", writerNode);
-        propertiesNode.set("boardItem", boardItemNode);
+        propertiesNode.set("galleries",
+                jsonNodeFactory.objectNode()
+                        .put("type", "string")
+                        .put("index", "no")
+        );
 
         ObjectNode parentNode = objectMapper.createObjectNode();
-        parentNode.put("type", JakdukConst.ES_TYPE_BOARD);
+        parentNode.put("type", Constants.ES_TYPE_ARTICLE);
 
-        ObjectNode mappings = objectMapper.createObjectNode();
+        ObjectNode mappings = jsonNodeFactory.objectNode();
         mappings.set("_parent", parentNode);
         mappings.set("properties", propertiesNode);
 
