@@ -1,6 +1,7 @@
 logging:
+  file: /jakduk/batch/logs/prod-batch.log
   level:
-    root: debug
+    root: info
 
 spring:
   datasource:
