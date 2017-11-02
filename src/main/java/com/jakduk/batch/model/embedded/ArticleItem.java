@@ -2,6 +2,8 @@ package com.jakduk.batch.model.embedded;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 
 /**
  * 관계만 나타내기 위하여 PK 정보만 있음. 변경될 소지가 있는 필드는 없어야 한다.
@@ -14,10 +16,11 @@ import lombok.Getter;
 
 @Getter
 @AllArgsConstructor
+@ToString
 public class ArticleItem {
 
 	private String id;
 	private Integer seq;
-	private String board;
+	@Setter private String board;
 
 }
