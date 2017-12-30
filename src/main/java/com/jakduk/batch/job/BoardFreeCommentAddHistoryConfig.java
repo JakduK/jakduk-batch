@@ -1,8 +1,8 @@
-package com.jakduk.batch.configuration;
+package com.jakduk.batch.job;
 
 import com.jakduk.batch.common.Constants;
-import com.jakduk.batch.model.db.Gallery;
-import com.jakduk.batch.processor.GalleryCheckNameProcessor;
+import com.jakduk.batch.model.db.ArticleComment;
+import com.jakduk.batch.processor.BoardFreeCommentAddHistoryProcessor;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
@@ -15,6 +15,7 @@ import org.springframework.batch.item.data.MongoItemWriter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoOperations;
 
@@ -22,11 +23,13 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Gallery 의 name이 fileName과 동일하면 ""로 엎어친다.
+ * BoardFree에 lastUpdated 필드를 추가한다.
  *
- * Created by pyohwanjang on 2017. 4. 21..
+ * Created by pyohwanjang on 2017. 3. 12..
  */
-public class GalleryCheckNameConfig {
+
+@Configuration
+public class BoardFreeCommentAddHistoryConfig {
 
     @Autowired
     private JobBuilderFactory jobBuilderFactory;
@@ -38,34 +41,32 @@ public class GalleryCheckNameConfig {
     private MongoOperations mongoOperations;
 
     @Bean
-    public Job galleryCheckNameJob(@Qualifier("galleryCheckNameStep") Step step) {
-
-        return jobBuilderFactory.get("galleryCheckNameJob")
+    public Job boardFreeCommentAddHistoryJob(@Qualifier("boardFreeCommentAddHistoryStep") Step step) {
+        return jobBuilderFactory.get("boardFreeCommentAddHistoryJob")
                 .incrementer(new RunIdIncrementer())
                 .start(step)
                 .build();
     }
 
     @Bean
-    public Step galleryCheckNameStep() {
-        return stepBuilderFactory.get("galleryCheckNameStep")
-                .<Gallery, Gallery>chunk(1000)
-                .reader(galleryCheckNameReader())
-                .processor(galleryCheckNameProcessor())
-                .writer(galleryCheckNameWriter())
+    public Step boardFreeCommentAddHistoryStep() {
+        return stepBuilderFactory.get("boardFreeCommentAddHistoryStep")
+                .<ArticleComment, ArticleComment>chunk(1000)
+                .reader(boardFreeCommentAddHistoryReader())
+                .processor(boardFreeCommentAddHistoryProcessor())
+                .writer(boardFreeCommentAddHistoryWriter())
                 .build();
     }
 
     @Bean
-    public ItemReader<Gallery> galleryCheckNameReader() {
+    public ItemReader<ArticleComment> boardFreeCommentAddHistoryReader() {
+        String query = String.format("{'batch':{$nin:['%s']}}",
+                Constants.BATCH_TYPE.BOARD_FREE_COMMENT_ADD_HISTORY_01);
 
-        String query = String.format("{'status.status':'%s', 'batch':{$nin:['%s']}}",
-                Constants.GALLERY_STATUS_TYPE.ENABLE, Constants.BATCH_TYPE.GALLERY_CHECK_NAME_01);
-
-        MongoItemReader<Gallery> itemReader = new MongoItemReader<>();
+        MongoItemReader<ArticleComment> itemReader = new MongoItemReader<>();
         itemReader.setTemplate(mongoOperations);
-        itemReader.setTargetType(Gallery.class);
-        itemReader.setPageSize(500);
+        itemReader.setTargetType(ArticleComment.class);
+        itemReader.setPageSize(1000);
         itemReader.setQuery(query);
         Map<String, Sort.Direction> sorts = new HashMap<>();
         sorts.put("id", Sort.Direction.ASC);
@@ -75,15 +76,16 @@ public class GalleryCheckNameConfig {
     }
 
     @Bean
-    public ItemProcessor<Gallery, Gallery> galleryCheckNameProcessor() {
-        return new GalleryCheckNameProcessor();
+    public ItemProcessor<ArticleComment, ArticleComment> boardFreeCommentAddHistoryProcessor() {
+        return new BoardFreeCommentAddHistoryProcessor();
     }
 
     @Bean
-    public MongoItemWriter<Gallery> galleryCheckNameWriter() {
-        MongoItemWriter<Gallery> writer = new MongoItemWriter<>();
+    public MongoItemWriter<ArticleComment> boardFreeCommentAddHistoryWriter() {
+        MongoItemWriter<ArticleComment> writer = new MongoItemWriter<>();
         writer.setTemplate(mongoOperations);
 
         return writer;
     }
+
 }

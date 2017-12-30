@@ -1,8 +1,8 @@
-package com.jakduk.batch.configuration;
+package com.jakduk.batch.job;
 
 import com.jakduk.batch.common.Constants;
 import com.jakduk.batch.model.db.Gallery;
-import com.jakduk.batch.processor.AppendGalleryFileExtProcessor;
+import com.jakduk.batch.processor.RemoveOldGalleryProcessor;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
@@ -11,7 +11,6 @@ import org.springframework.batch.core.launch.support.RunIdIncrementer;
 import org.springframework.batch.item.ItemProcessor;
 import org.springframework.batch.item.ItemReader;
 import org.springframework.batch.item.data.MongoItemReader;
-import org.springframework.batch.item.data.MongoItemWriter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
@@ -23,42 +22,41 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * 사진첩의 사진 파일에 확장자를 추가한다.
+ * 오래된 사진파일과 DB document를 삭제한다.
  *
- * Created by pyohwan on 16. 10. 4.
+ * Created by pyohwan on 16. 10. 6.
  */
 
 @Configuration
-public class AppendGalleryFileExtConfig {
+public class RemoveOldGalleryConfig {
 
     @Autowired private JobBuilderFactory jobBuilderFactory;
     @Autowired private StepBuilderFactory stepBuilderFactory;
     @Autowired private MongoOperations mongoOperations;
 
     @Bean
-    public Job appendGalleryFileExtJob(@Qualifier("appendGalleryFileExtStep") Step step1) throws Exception {
+    public Job removeOldGalleryJob(@Qualifier("removeOldGalleryStep") Step step1) throws Exception {
 
-        return jobBuilderFactory.get("appendGalleryFileExtJob")
+        return jobBuilderFactory.get("removeOldGalleryJob")
                 .incrementer(new RunIdIncrementer())
                 .start(step1)
                 .build();
     }
 
     @Bean
-    public Step appendGalleryFileExtStep() {
-        return stepBuilderFactory.get("appendGalleryFileExtStep")
+    public Step removeOldGalleryStep() {
+        return stepBuilderFactory.get("removeOldGalleryStep")
                 .<Gallery, Gallery>chunk(1000)
-                .reader(appendGalleryFileExtReader())
-                .processor(appendGalleryFileExtProcessor())
-                .writer(appendGalleryFileExtWriter())
+                .reader(removeOldGalleryReader())
+                .processor(removeOldGalleryProcessor())
                 .build();
     }
 
     @Bean
-    public ItemReader<Gallery> appendGalleryFileExtReader() {
+    public ItemReader<Gallery> removeOldGalleryReader() {
 
-        String query = String.format("{'status.status':'%s', 'batch':{$nin:['%s']}}",
-                Constants.GALLERY_STATUS_TYPE.ENABLE, Constants.BATCH_TYPE.APPEND_GALLERY_FILE_EXT_01);
+        String query = String.format("{'status.status':'%s'}",
+                Constants.GALLERY_STATUS_TYPE.TEMP);
 
         MongoItemReader<Gallery> itemReader = new MongoItemReader<>();
         itemReader.setTemplate(mongoOperations);
@@ -74,16 +72,8 @@ public class AppendGalleryFileExtConfig {
     }
 
     @Bean
-    public ItemProcessor<Gallery, Gallery> appendGalleryFileExtProcessor() {
-        return new AppendGalleryFileExtProcessor();
-    }
-
-    @Bean
-    public MongoItemWriter<Gallery> appendGalleryFileExtWriter() {
-        MongoItemWriter<Gallery> writer = new MongoItemWriter<>();
-        writer.setTemplate(mongoOperations);
-
-        return writer;
+    public ItemProcessor<Gallery, Gallery> removeOldGalleryProcessor() {
+        return new RemoveOldGalleryProcessor();
     }
 
 }
