@@ -18,11 +18,15 @@ spring:
       cluster-nodes: 192.168.35.137:9300,192.168.35.181:9300
       repositories:
         enabled: false
+  rabbitmq:
+    addresses: 192.168.35.74
+    username: admin
+    password: wkrenakstp@
+    listener:
+      simple:
+        auto-startup: false
 
 jakduk:
-  api-server:
-    server-url: https://dev-api.jakduk.com
-
   elasticsearch:
     index-board: jakduk_dev_board
     index-gallery: jakduk_dev_gallery
@@ -37,3 +41,13 @@ jakduk:
     thumbnail-path: /Users/pyohwanjang/storage/thumbnail/
     user-picture-large-path: /Users/pyohwanjang/storage/user/picture/large/
     user-picture-small-path: /Users/pyohwanjang/storage/user/picture/small/
+
+  rabbitmq:
+    exchange-name: jakduk-dev
+    queues:
+      email:
+        binding-queue-name: dev.email
+        binding-routing-key: dev.email.*
+        enabled: false
+    routing-keys:
+      email-bulk: dev.email.bulk

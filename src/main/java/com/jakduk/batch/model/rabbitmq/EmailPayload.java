@@ -2,6 +2,7 @@ package com.jakduk.batch.model.rabbitmq;
 
 import lombok.Builder;
 import lombok.Getter;
+import lombok.ToString;
 
 import java.util.Locale;
 import java.util.Map;
@@ -12,11 +13,13 @@ import java.util.Map;
 
 @Builder
 @Getter
-public class SendBulkMailRequest {
+@ToString
+public class EmailPayload {
     private Locale locale;
     private String type;
     private String templateName;
     private String recipientEmail;
     private String subject;
+    private Map<String, String> extra;
     private Map<String, Object> body;
 }
