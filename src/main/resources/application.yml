@@ -2,3 +2,7 @@ spring:
   batch:
     job:
       enabled: false
+
+jakduk:
+  api-server:
+    send-bulk-mail: /api/internal/rabbit-mq/send/bulk-mail

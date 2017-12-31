@@ -3,7 +3,6 @@ package com.jakduk.batch.configuration;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 /**
@@ -42,6 +41,15 @@ public class JakdukProperties {
         private String thumbnailPath;
         private String userPictureLargePath;
         private String userPictureSmallPath;
+    }
+
+    @Getter
+    @Setter
+    @Configuration
+    @ConfigurationProperties("jakduk.api-server")
+    public class ApiServer {
+        private String serverUrl;
+        private String sendBulkMail;
     }
 
 }
