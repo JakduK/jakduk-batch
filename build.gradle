@@ -15,12 +15,15 @@ apply plugin: 'eclipse'
 apply plugin: 'idea'
 apply plugin: 'org.springframework.boot'
 
-version = '1.0.0'
 sourceCompatibility = 1.8
+
+springBoot {
+	executable = true
+}
 
 // tag::jar[]
 jar {
-	baseName = 'batch'
+	baseName = 'jakduk-batch'
 	version =  '0.1.0'
 }
 // end::jar[]
