@@ -27,10 +27,6 @@ public class SendBulkMailProcessor implements ItemProcessor<User, User> {
         if (StringUtils.endsWithAny(item.getEmail(), "@jakduk.com", "@tfbnw.net"))
             return null;
 
-        // 테스트 용도
-        if (! "phjang1983@daum.net".equals(item.getEmail()))
-            return null;
-
         log.info("item=" + item);
 
         Mail mail = (Mail) jobExecution.getExecutionContext().get("mail");
@@ -42,7 +38,7 @@ public class SendBulkMailProcessor implements ItemProcessor<User, User> {
                     }
                 });
 
-        return null;
+        return item;
     }
 
     @BeforeStep
