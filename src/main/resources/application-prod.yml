@@ -1,5 +1,5 @@
 logging:
-  file: /jakduk/batch/logs/prod-batch.log
+  file: /jakduk/batch/logs/batch.log
   level:
     root: info
 
@@ -19,6 +19,13 @@ spring:
       cluster-nodes: 192.168.35.137:9300,192.168.35.181:9300
       repositories:
         enabled: false
+  rabbitmq:
+    addresses: 192.168.35.74
+    username: admin
+    password: wkrenakstp@
+    listener:
+      simple:
+        auto-startup: false
 
 jakduk:
   elasticsearch:
@@ -29,8 +36,19 @@ jakduk:
     bulk-concurrent-requests: 2
     bulk-flush-interval-seconds: 10
     bulk-size-mb: 50
+
   storage:
     image-path: /jakduk/storage/image/
     thumbnail-path: /jakduk/storage/thumbnail/
     user-picture-large-path: /jakduk/storage/thumbnail/
     user-picture-small-path: /jakduk/storage/user/picture/small/
+
+  rabbitmq:
+    exchange-name: jakduk-prd
+    queues:
+      email:
+        binding-queue-name: prd.email
+        binding-routing-key: prd.email.*
+        enabled: true
+    routing-keys:
+      email-bulk: prd.email.bulk

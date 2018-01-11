@@ -1,4 +1,4 @@
-package com.jakduk.batch.configuration;
+package com.jakduk.batch.job;
 
 import com.jakduk.batch.service.SearchService;
 import lombok.extern.slf4j.Slf4j;

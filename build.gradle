@@ -1,6 +1,6 @@
 buildscript {
 	ext {
-		springBootVersion = '1.5.8.RELEASE'
+		springBootVersion = '1.5.9.RELEASE'
 	}
 	repositories {
 		mavenCentral()
@@ -15,12 +15,15 @@ apply plugin: 'eclipse'
 apply plugin: 'idea'
 apply plugin: 'org.springframework.boot'
 
-version = '1.0.0'
 sourceCompatibility = 1.8
+
+springBoot {
+	executable = true
+}
 
 // tag::jar[]
 jar {
-	baseName = 'batch'
+	baseName = 'jakduk-batch'
 	version =  '0.1.0'
 }
 // end::jar[]
@@ -31,9 +34,11 @@ repositories {
 
 
 dependencies {
+	compile('org.springframework.boot:spring-boot-starter-web')
 	compile('org.springframework.boot:spring-boot-starter-batch')
 	compile('org.springframework.boot:spring-boot-starter-data-elasticsearch')
 	compile('org.springframework.boot:spring-boot-starter-data-mongodb')
+	compile('org.springframework.boot:spring-boot-starter-amqp')
 
 	compile 'org.mariadb.jdbc:mariadb-java-client:2.0.3'
 	compile 'org.apache.commons:commons-lang3:3.6'

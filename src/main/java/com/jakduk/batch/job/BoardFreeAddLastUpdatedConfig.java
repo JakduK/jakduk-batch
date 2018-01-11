@@ -1,4 +1,4 @@
-package com.jakduk.batch.configuration;
+package com.jakduk.batch.job;
 
 import com.jakduk.batch.common.Constants;
 import com.jakduk.batch.model.db.Article;

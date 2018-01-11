@@ -1,8 +1,8 @@
-package com.jakduk.batch.configuration;
+package com.jakduk.batch.job;
 
 import com.jakduk.batch.common.Constants;
-import com.jakduk.batch.model.db.ArticleComment;
-import com.jakduk.batch.processor.ArticleCommentEditBoardProcessor;
+import com.jakduk.batch.model.db.Gallery;
+import com.jakduk.batch.processor.AppendGalleryFileExtProcessor;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
@@ -23,60 +23,67 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * ArticeComment의 article.board와 실제 article의 board를 일치시킴.
+ * 사진첩의 사진 파일에 확장자를 추가한다.
+ *
+ * Created by pyohwan on 16. 10. 4.
  */
+
 @Configuration
-public class ArticleCommentEditBoardConfig {
+public class AppendGalleryFileExtConfig {
 
     @Autowired private JobBuilderFactory jobBuilderFactory;
     @Autowired private StepBuilderFactory stepBuilderFactory;
     @Autowired private MongoOperations mongoOperations;
 
     @Bean
-    public Job articleCommentEditBoardJob(@Qualifier("articleCommentEditBoardStep") Step step) {
-        return jobBuilderFactory.get("articleCommentEditBoardJob")
+    public Job appendGalleryFileExtJob(@Qualifier("appendGalleryFileExtStep") Step step1) throws Exception {
+
+        return jobBuilderFactory.get("appendGalleryFileExtJob")
                 .incrementer(new RunIdIncrementer())
-                .start(step)
+                .start(step1)
                 .build();
     }
 
     @Bean
-    public Step articleCommentEditBoardStep() {
-        return stepBuilderFactory.get("articleCommentEditBoardStep")
-                .<ArticleComment, ArticleComment>chunk(1000)
-                .reader(articleCommentEditBoardReader())
-                .processor(articleCommentEditBoardProcessor())
-                .writer(articleCommentEditBoardWriter())
+    public Step appendGalleryFileExtStep() {
+        return stepBuilderFactory.get("appendGalleryFileExtStep")
+                .<Gallery, Gallery>chunk(1000)
+                .reader(appendGalleryFileExtReader())
+                .processor(appendGalleryFileExtProcessor())
+                .writer(appendGalleryFileExtWriter())
                 .build();
     }
 
     @Bean
-    public ItemReader<ArticleComment> articleCommentEditBoardReader() {
-        String query = String.format("{'batch':{$nin:['%s']}}",
-                Constants.BATCH_TYPE.ARTICLE_COMMENT_EDIT_BOARD_01);
+    public ItemReader<Gallery> appendGalleryFileExtReader() {
 
-        MongoItemReader<ArticleComment> itemReader = new MongoItemReader<>();
+        String query = String.format("{'status.status':'%s', 'batch':{$nin:['%s']}}",
+                Constants.GALLERY_STATUS_TYPE.ENABLE, Constants.BATCH_TYPE.APPEND_GALLERY_FILE_EXT_01);
+
+        MongoItemReader<Gallery> itemReader = new MongoItemReader<>();
         itemReader.setTemplate(mongoOperations);
-        itemReader.setTargetType(ArticleComment.class);
-        itemReader.setPageSize(1000);
+        itemReader.setTargetType(Gallery.class);
+        itemReader.setPageSize(100);
         itemReader.setQuery(query);
+
         Map<String, Sort.Direction> sorts = new HashMap<>();
-        sorts.put("id", Sort.Direction.ASC);
+        sorts.put("id", Sort.Direction.DESC);
         itemReader.setSort(sorts);
 
         return itemReader;
     }
 
     @Bean
-    public ItemProcessor<ArticleComment, ArticleComment> articleCommentEditBoardProcessor() {
-        return new ArticleCommentEditBoardProcessor();
+    public ItemProcessor<Gallery, Gallery> appendGalleryFileExtProcessor() {
+        return new AppendGalleryFileExtProcessor();
     }
 
     @Bean
-    public MongoItemWriter<ArticleComment> articleCommentEditBoardWriter() {
-        MongoItemWriter<ArticleComment> writer = new MongoItemWriter<>();
+    public MongoItemWriter<Gallery> appendGalleryFileExtWriter() {
+        MongoItemWriter<Gallery> writer = new MongoItemWriter<>();
         writer.setTemplate(mongoOperations);
 
         return writer;
     }
+
 }

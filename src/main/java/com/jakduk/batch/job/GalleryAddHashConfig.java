@@ -1,8 +1,8 @@
-package com.jakduk.batch.configuration;
+package com.jakduk.batch.job;
 
 import com.jakduk.batch.common.Constants;
-import com.jakduk.batch.model.db.Article;
-import com.jakduk.batch.processor.BoardFreeAddShortContentProcessor;
+import com.jakduk.batch.model.db.Gallery;
+import com.jakduk.batch.processor.GalleryAddHashProcessor;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
@@ -23,13 +23,13 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * 본문 미리보기 용으로, HTML이 제거된 100자 정도의 본문 요약 필드가 필요하다
+ * Gallery에 hash 필드 추가. 중복 검사할때 쓰임
  *
- * Created by pyohwanjang on 2017. 3. 2..
+ * Created by pyohwanjang on 2017. 4. 11..
  */
 
 @Configuration
-public class BoardFreeAddShortContentConfig {
+public class GalleryAddHashConfig {
 
     @Autowired
     private JobBuilderFactory jobBuilderFactory;
@@ -41,33 +41,33 @@ public class BoardFreeAddShortContentConfig {
     private MongoOperations mongoOperations;
 
     @Bean
-    public Job boardFreeAddShortContentJob(@Qualifier("boardFreeAddShortContentStep") Step step) {
+    public Job galleryAddHashJob(@Qualifier("galleryAddHashStep") Step step) {
 
-        return jobBuilderFactory.get("boardFreeAddShortContentJob")
+        return jobBuilderFactory.get("galleryAddHashJob")
                 .incrementer(new RunIdIncrementer())
                 .start(step)
                 .build();
     }
 
     @Bean
-    public Step boardFreeAddShortContentStep() {
-        return stepBuilderFactory.get("boardFreeAddShortContentStep")
-                .<Article, Article>chunk(1000)
-                .reader(boardFreeAddShortContentReader())
-                .processor(boardFreeAddShortContentProcessor())
-                .writer(boardFreeAddShortContentWriter())
+    public Step galleryAddHashStep() {
+        return stepBuilderFactory.get("galleryAddHashStep")
+                .<Gallery, Gallery>chunk(1000)
+                .reader(galleryAddHashReader())
+                .processor(galleryAddHashProcessor())
+                .writer(galleryAddHashWriter())
                 .build();
     }
 
     @Bean
-    public ItemReader<Article> boardFreeAddShortContentReader() {
+    public ItemReader<Gallery> galleryAddHashReader() {
 
-        String query = String.format("{'batch':{$nin:['%s']}}",
-                Constants.BATCH_TYPE.BOARD_FREE_ADD_SHORT_CONTENT_01);
+        String query = String.format("{'status.status':'%s', 'batch':{$nin:['%s']}}",
+                Constants.GALLERY_STATUS_TYPE.ENABLE, Constants.BATCH_TYPE.GALLERY_ADD_HASH_FIELD_01);
 
-        MongoItemReader<Article> itemReader = new MongoItemReader<>();
+        MongoItemReader<Gallery> itemReader = new MongoItemReader<>();
         itemReader.setTemplate(mongoOperations);
-        itemReader.setTargetType(Article.class);
+        itemReader.setTargetType(Gallery.class);
         itemReader.setPageSize(500);
         itemReader.setQuery(query);
         Map<String, Sort.Direction> sorts = new HashMap<>();
@@ -78,16 +78,15 @@ public class BoardFreeAddShortContentConfig {
     }
 
     @Bean
-    public ItemProcessor<Article, Article> boardFreeAddShortContentProcessor() {
-        return new BoardFreeAddShortContentProcessor();
+    public ItemProcessor<Gallery, Gallery> galleryAddHashProcessor() {
+        return new GalleryAddHashProcessor();
     }
 
     @Bean
-    public MongoItemWriter<Article> boardFreeAddShortContentWriter() {
-        MongoItemWriter<Article> writer = new MongoItemWriter<>();
+    public MongoItemWriter<Gallery> galleryAddHashWriter() {
+        MongoItemWriter<Gallery> writer = new MongoItemWriter<>();
         writer.setTemplate(mongoOperations);
 
         return writer;
     }
-
 }
