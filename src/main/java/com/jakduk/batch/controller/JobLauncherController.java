@@ -9,19 +9,22 @@ import org.springframework.batch.core.repository.JobRestartException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Date;
 
 @Slf4j
 @RestController
+@RequestMapping("/jobs")
 public class JobLauncherController {
 
     @Autowired private JobLauncher jobLauncher;
     @Autowired private Job sendBulkMailJob;
+    @Autowired private Job initElasticsearchIndexJob;
 
-    @PostMapping("/send/bulk/mail/{id}")
-    public EmptyJsonResponse handle(@PathVariable String id)
+    @PostMapping("send-bulk-mail/{id}")
+    public EmptyJsonResponse sendBulkMail(@PathVariable String id)
             throws JobParametersInvalidException, JobExecutionAlreadyRunningException, JobRestartException, JobInstanceAlreadyCompleteException {
 
         JobParameters parameters = new JobParametersBuilder()
@@ -30,6 +33,22 @@ public class JobLauncherController {
                 .toJobParameters();
 
         JobExecution jobExecution = jobLauncher.run(sendBulkMailJob, parameters);
+
+        if (jobExecution.getStatus().isUnsuccessful())
+            throw new RuntimeException("Job이 실패했습니다. Status=" + jobExecution.getStatus().getBatchStatus());
+
+        return EmptyJsonResponse.newInstance();
+    }
+
+    @PostMapping("init-elasticsearch-index")
+    public EmptyJsonResponse initElasticsearchIndex()
+            throws JobParametersInvalidException, JobExecutionAlreadyRunningException, JobRestartException, JobInstanceAlreadyCompleteException {
+
+        JobParameters parameters = new JobParametersBuilder()
+                .addDate("date", new Date())
+                .toJobParameters();
+
+        JobExecution jobExecution = jobLauncher.run(initElasticsearchIndexJob, parameters);
 
         if (jobExecution.getStatus().isUnsuccessful())
             throw new RuntimeException("Job이 실패했습니다. Status=" + jobExecution.getStatus().getBatchStatus());
