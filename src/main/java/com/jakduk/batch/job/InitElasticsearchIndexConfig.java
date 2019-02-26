@@ -3,7 +3,6 @@ package com.jakduk.batch.job;
 import com.jakduk.batch.service.SearchService;
 import lombok.extern.slf4j.Slf4j;
 import org.elasticsearch.index.IndexNotFoundException;
-import org.elasticsearch.indices.IndexAlreadyExistsException;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
@@ -74,12 +73,7 @@ public class InitElasticsearchIndexConfig {
 
                     searchService.createIndexBoard();
                     searchService.createIndexGallery();
-
-                    try {
-                        searchService.createIndexSearchWord();
-                    } catch (IndexAlreadyExistsException e) {
-                        log.warn("Index: {}, {}, {}", e.status().name(), e.getIndex(), e.getDetailedMessage());
-                    }
+                    searchService.createIndexSearchWord();
 
                     return RepeatStatus.FINISHED;
                 })

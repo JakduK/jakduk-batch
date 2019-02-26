@@ -1,7 +1,12 @@
 logging:
+  pattern:
+    file: "%d{ISO8601} [%thread] [%-5level] [%logger{0}.%M:%line] - %msg%n%rEx"
   file: /jakduk/batch/logs/batch.log
   level:
     root: debug
+    sun.rmi: INFO
+    org.mongodb.driver: INFO
+    org.springframework.amqp.rabbit.listener.BlockingQueueConsumer: INFO
 
 spring:
   datasource:
@@ -9,14 +14,13 @@ spring:
     username: root
     password: jakduk584
   batch:
-    initializer:
-      enabled: false
+    initialize-schema: never
   data:
     mongodb:
       uri: mongodb://192.168.35.138/jakduk_test
     elasticsearch:
       cluster-name: jakduk-elasticsearch
-      cluster-nodes: 192.168.35.137:9300,192.168.35.181:9300
+      cluster-nodes: 192.168.35.151:9300,192.168.35.18:9300
       repositories:
         enabled: false
   rabbitmq:

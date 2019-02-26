@@ -339,7 +339,7 @@ public class SearchService {
             }
 
             @Override public void afterBulk(long l, BulkRequest bulkRequest, BulkResponse bulkResponse) {
-                log.debug("bulk took: {}", bulkResponse.getTookInMillis());
+                log.debug("bulk took: {}", bulkResponse.getTook());
 
                 if (bulkResponse.hasFailures())
                     log.error(bulkResponse.buildFailureMessage());
@@ -388,11 +388,11 @@ public class SearchService {
 
                 .put("index.analysis.analyzer.korean.type", "custom")
                 .put("index.analysis.analyzer.korean.tokenizer", "seunjeon_default_tokenizer")
-                .putArray("index.analysis.tokenizer.seunjeon_default_tokenizer.user_words", userWords)
+                .putList("index.analysis.tokenizer.seunjeon_default_tokenizer.user_words", userWords)
                 .put("index.analysis.tokenizer.seunjeon_default_tokenizer.type", "seunjeon_tokenizer")
                 .put("index.analysis.tokenizer.seunjeon_default_tokenizer.pos_tagging", false)
                 .put("index.analysis.tokenizer.seunjeon_default_tokenizer.decompound", true)
-                .putArray("index.analysis.tokenizer.seunjeon_default_tokenizer.index_poses",
+                .putList("index.analysis.tokenizer.seunjeon_default_tokenizer.index_poses",
                         "N", "SL", "SH", "SN", "XR", "V", "UNK", "I", "M");
     }
 

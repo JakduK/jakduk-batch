@@ -13,6 +13,7 @@ import org.springframework.batch.core.launch.support.RunIdIncrementer;
 import org.springframework.batch.item.ItemProcessor;
 import org.springframework.batch.item.ItemReader;
 import org.springframework.batch.item.data.MongoItemReader;
+import org.springframework.batch.item.data.MongoItemWriter;
 import org.springframework.batch.repeat.RepeatStatus;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -75,6 +76,7 @@ public class SendBulkMailConfig {
                 .<User, User>chunk(1000)
                 .reader(sendBulkMailReader())
                 .processor(sendBulkMailProcessor())
+                .writer(new MongoItemWriter<>())
                 .build();
     }
 
