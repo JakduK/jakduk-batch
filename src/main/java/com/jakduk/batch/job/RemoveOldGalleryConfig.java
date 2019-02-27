@@ -34,6 +34,7 @@ public class RemoveOldGalleryConfig {
     @Autowired private JobBuilderFactory jobBuilderFactory;
     @Autowired private StepBuilderFactory stepBuilderFactory;
     @Autowired private MongoOperations mongoOperations;
+    @Autowired private RemoveOldGalleryProcessor removeOldGalleryProcessor;
 
     @Bean
     public Job removeOldGalleryJob(@Qualifier("removeOldGalleryStep") Step step1) throws Exception {
@@ -49,7 +50,7 @@ public class RemoveOldGalleryConfig {
         return stepBuilderFactory.get("removeOldGalleryStep")
                 .<Gallery, Gallery>chunk(1000)
                 .reader(this.removeOldGalleryReader())
-                .processor(this.removeOldGalleryProcessor())
+                .processor(removeOldGalleryProcessor)
                 .writer(new MongoItemWriter<>())
                 .build();
     }
@@ -70,10 +71,6 @@ public class RemoveOldGalleryConfig {
         itemReader.setSort(sorts);
 
         return itemReader;
-    }
-
-    private ItemProcessor<Gallery, Gallery> removeOldGalleryProcessor() {
-        return new RemoveOldGalleryProcessor();
     }
 
     private MongoItemWriter<Gallery> removeOldGalleryWriter() {
