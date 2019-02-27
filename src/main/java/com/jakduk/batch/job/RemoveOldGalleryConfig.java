@@ -8,7 +8,6 @@ import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
 import org.springframework.batch.core.launch.support.RunIdIncrementer;
-import org.springframework.batch.item.ItemProcessor;
 import org.springframework.batch.item.ItemReader;
 import org.springframework.batch.item.data.MongoItemReader;
 import org.springframework.batch.item.data.MongoItemWriter;
@@ -51,7 +50,7 @@ public class RemoveOldGalleryConfig {
                 .<Gallery, Gallery>chunk(1000)
                 .reader(this.removeOldGalleryReader())
                 .processor(removeOldGalleryProcessor)
-                .writer(new MongoItemWriter<>())
+                .writer(this.removeOldGalleryWriter())
                 .build();
     }
 
