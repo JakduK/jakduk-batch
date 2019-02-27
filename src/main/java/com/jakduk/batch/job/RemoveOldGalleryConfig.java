@@ -36,8 +36,7 @@ public class RemoveOldGalleryConfig {
     @Autowired private RemoveOldGalleryProcessor removeOldGalleryProcessor;
 
     @Bean
-    public Job removeOldGalleryJob(@Qualifier("removeOldGalleryStep") Step step1) throws Exception {
-
+    public Job removeOldGalleryJob(@Qualifier("removeOldGalleryStep") Step step1) {
         return jobBuilderFactory.get("removeOldGalleryJob")
                 .incrementer(new RunIdIncrementer())
                 .start(step1)

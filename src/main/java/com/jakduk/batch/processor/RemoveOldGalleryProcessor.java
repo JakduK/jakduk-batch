@@ -51,17 +51,18 @@ public class RemoveOldGalleryProcessor implements ItemProcessor<Gallery, Gallery
                 deleteGalleryFile(imagePath);
                 deleteGalleryFile(thumbPath);
 
-                log.info("path={}, gallery id={}", imagePath, item.getId());
+                log.info("gallery id={}, path={}",item.getId(), imagePath);
 
                 galleryRepository.delete(item);
             } catch (IOException e) {
                 e.printStackTrace();
             }
         } else {
-            log.warn("Not exist path={}", imagePath);
+            log.warn("Not exist gallery id={}, path={}", item.getId(), imagePath);
         }
 
-        return item;
+        // ItemWrite 가 필요 없기 때문에 skip 함
+        return null;
     }
 
     private void deleteGalleryFile(Path path) throws IOException {

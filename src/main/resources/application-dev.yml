@@ -7,6 +7,8 @@ logging:
     sun.rmi: INFO
     org.mongodb.driver: INFO
     org.springframework.amqp.rabbit.listener.BlockingQueueConsumer: INFO
+    com.zaxxer.hikari.pool: INFO
+    org.apache.catalina.session: INFO
 
 spring:
   datasource:
