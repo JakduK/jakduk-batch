@@ -2,8 +2,8 @@ package com.jakduk.batch.job;
 
 import com.jakduk.batch.service.SearchService;
 import lombok.extern.slf4j.Slf4j;
+import org.elasticsearch.ResourceAlreadyExistsException;
 import org.elasticsearch.index.IndexNotFoundException;
-import org.elasticsearch.indices.IndexAlreadyExistsException;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
@@ -75,9 +75,10 @@ public class InitElasticsearchIndexConfig {
                     searchService.createIndexBoard();
                     searchService.createIndexGallery();
 
+                    // search-word 는 인덱스를 새로 만들지 않음. 따라서 기존할 경우, skip 함
                     try {
                         searchService.createIndexSearchWord();
-                    } catch (IndexAlreadyExistsException e) {
+                    } catch (ResourceAlreadyExistsException e) {
                         log.warn("Index: {}, {}, {}", e.status().name(), e.getIndex(), e.getDetailedMessage());
                     }
 

@@ -8,9 +8,9 @@ import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
 import org.springframework.batch.core.launch.support.RunIdIncrementer;
-import org.springframework.batch.item.ItemProcessor;
 import org.springframework.batch.item.ItemReader;
 import org.springframework.batch.item.data.MongoItemReader;
+import org.springframework.batch.item.data.MongoItemWriter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
@@ -33,10 +33,10 @@ public class RemoveOldGalleryConfig {
     @Autowired private JobBuilderFactory jobBuilderFactory;
     @Autowired private StepBuilderFactory stepBuilderFactory;
     @Autowired private MongoOperations mongoOperations;
+    @Autowired private RemoveOldGalleryProcessor removeOldGalleryProcessor;
 
     @Bean
-    public Job removeOldGalleryJob(@Qualifier("removeOldGalleryStep") Step step1) throws Exception {
-
+    public Job removeOldGalleryJob(@Qualifier("removeOldGalleryStep") Step step1) {
         return jobBuilderFactory.get("removeOldGalleryJob")
                 .incrementer(new RunIdIncrementer())
                 .start(step1)
@@ -47,13 +47,13 @@ public class RemoveOldGalleryConfig {
     public Step removeOldGalleryStep() {
         return stepBuilderFactory.get("removeOldGalleryStep")
                 .<Gallery, Gallery>chunk(1000)
-                .reader(removeOldGalleryReader())
-                .processor(removeOldGalleryProcessor())
+                .reader(this.removeOldGalleryReader())
+                .processor(removeOldGalleryProcessor)
+                .writer(this.removeOldGalleryWriter())
                 .build();
     }
 
-    @Bean
-    public ItemReader<Gallery> removeOldGalleryReader() {
+    private ItemReader<Gallery> removeOldGalleryReader() {
 
         String query = String.format("{'status.status':'%s'}",
                 Constants.GALLERY_STATUS_TYPE.TEMP);
@@ -71,9 +71,11 @@ public class RemoveOldGalleryConfig {
         return itemReader;
     }
 
-    @Bean
-    public ItemProcessor<Gallery, Gallery> removeOldGalleryProcessor() {
-        return new RemoveOldGalleryProcessor();
+    private MongoItemWriter<Gallery> removeOldGalleryWriter() {
+        MongoItemWriter<Gallery> writer = new MongoItemWriter<>();
+        writer.setTemplate(mongoOperations);
+
+        return writer;
     }
 
 }

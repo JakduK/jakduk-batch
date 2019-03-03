@@ -22,6 +22,7 @@ public class JobLauncherController {
     @Autowired private JobLauncher jobLauncher;
     @Autowired private Job sendBulkMailJob;
     @Autowired private Job initElasticsearchIndexJob;
+    @Autowired private Job removeOldGalleryJob;
 
     @PostMapping("send-bulk-mail/{id}")
     public EmptyJsonResponse sendBulkMail(@PathVariable String id)
@@ -34,8 +35,7 @@ public class JobLauncherController {
 
         JobExecution jobExecution = jobLauncher.run(sendBulkMailJob, parameters);
 
-        if (jobExecution.getStatus().isUnsuccessful())
-            throw new RuntimeException("Job이 실패했습니다. Status=" + jobExecution.getStatus().getBatchStatus());
+        this.checkStatus(jobExecution.getStatus());
 
         return EmptyJsonResponse.newInstance();
     }
@@ -50,9 +50,28 @@ public class JobLauncherController {
 
         JobExecution jobExecution = jobLauncher.run(initElasticsearchIndexJob, parameters);
 
-        if (jobExecution.getStatus().isUnsuccessful())
-            throw new RuntimeException("Job이 실패했습니다. Status=" + jobExecution.getStatus().getBatchStatus());
+        this.checkStatus(jobExecution.getStatus());
 
         return EmptyJsonResponse.newInstance();
+    }
+
+    @PostMapping("remove-old-gallery")
+    public EmptyJsonResponse removeOldGalleryJob()
+            throws JobParametersInvalidException, JobExecutionAlreadyRunningException, JobRestartException, JobInstanceAlreadyCompleteException {
+
+        JobParameters parameters = new JobParametersBuilder()
+                .addDate("date", new Date())
+                .toJobParameters();
+
+        JobExecution jobExecution = jobLauncher.run(removeOldGalleryJob, parameters);
+
+        this.checkStatus(jobExecution.getStatus());
+
+        return EmptyJsonResponse.newInstance();
+    }
+
+    private void checkStatus(BatchStatus batchStatus) {
+        if (batchStatus.isUnsuccessful())
+            throw new RuntimeException("Job이 실패했습니다. Status=" + batchStatus.getBatchStatus());
     }
 }

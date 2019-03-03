@@ -5,8 +5,11 @@ import com.jakduk.batch.model.db.Gallery;
 import com.jakduk.batch.repository.GalleryRepository;
 import org.apache.commons.lang3.StringUtils;
 import org.bson.types.ObjectId;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.batch.item.ItemProcessor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
 import java.io.IOException;
@@ -18,7 +21,11 @@ import java.time.ZoneId;
 /**
  * Created by pyohwan on 16. 10. 6.
  */
+
+@Component
 public class RemoveOldGalleryProcessor implements ItemProcessor<Gallery, Gallery> {
+
+    private final Logger log = LoggerFactory.getLogger(this.getClass());
 
     @Resource private JakdukProperties.Storage storageProperties;
 
@@ -43,17 +50,17 @@ public class RemoveOldGalleryProcessor implements ItemProcessor<Gallery, Gallery
             try {
                 deleteGalleryFile(imagePath);
                 deleteGalleryFile(thumbPath);
-                System.out.println("path=" + imagePath + ", gallery id=" + item.getId());
-
                 galleryRepository.delete(item);
+                log.info("Remove gallery id={}, path={}",item.getId(), imagePath);
             } catch (IOException e) {
                 e.printStackTrace();
             }
         } else {
-            System.out.println("Not exist path=" + imagePath);
+            log.warn("No image in path. gallery id={}, path={}", item.getId(), imagePath);
         }
 
-        return item;
+        // ItemWrite 가 필요 없기 때문에 skip 함
+        return null;
     }
 
     private void deleteGalleryFile(Path path) throws IOException {
