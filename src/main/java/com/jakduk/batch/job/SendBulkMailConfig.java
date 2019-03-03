@@ -76,7 +76,7 @@ public class SendBulkMailConfig {
                 .<User, User>chunk(1000)
                 .reader(sendBulkMailReader())
                 .processor(sendBulkMailProcessor())
-                .writer(new MongoItemWriter<>())
+                .writer(this.sendBulkMailWriter())
                 .build();
     }
 
@@ -97,6 +97,13 @@ public class SendBulkMailConfig {
     @Bean
     public ItemProcessor<User, User> sendBulkMailProcessor() {
         return new SendBulkMailProcessor();
+    }
+
+    private MongoItemWriter<User> sendBulkMailWriter() {
+        MongoItemWriter<User> writer = new MongoItemWriter<>();
+        writer.setTemplate(mongoOperations);
+
+        return writer;
     }
 
 }
