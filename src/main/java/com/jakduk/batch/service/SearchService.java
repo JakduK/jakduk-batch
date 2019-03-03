@@ -32,11 +32,13 @@ import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.unit.ByteSizeUnit;
 import org.elasticsearch.common.unit.ByteSizeValue;
 import org.elasticsearch.common.unit.TimeValue;
+import org.elasticsearch.common.xcontent.XContentType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -60,41 +62,33 @@ public class SearchService {
 
         String index = elasticsearchProperties.getIndexBoard();
 
-        try {
-            CreateIndexResponse response = client.admin().indices().prepareCreate(index)
-                    .setSettings(getIndexSettings())
-                    .addMapping(Constants.ES_TYPE_ARTICLE, getArticleMappings())
-                    .addMapping(Constants.ES_TYPE_COMMENT, getArticleCommentMappings())
-                    .get();
+        CreateIndexResponse response = client.admin().indices().prepareCreate(index)
+                .setSettings(getIndexSettings())
+                .addMapping(Constants.ES_TYPE_ARTICLE, getArticleMappings())
+                .addMapping(Constants.ES_TYPE_COMMENT, getArticleCommentMappings())
+                .get();
 
-            if (response.isAcknowledged()) {
-                log.debug("Index " + index + " created");
-            } else {
-                throw new RuntimeException("Index " + index + " not created");
-            }
-
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException("Index " + index + " not created", e.getCause());
+        if (response.isAcknowledged()) {
+            log.debug("Index " + index + " created");
+        } else {
+            throw new RuntimeException("Index " + index + " not created");
         }
+
     }
 
     public void createIndexGallery() {
 
         String index = elasticsearchProperties.getIndexGallery();
 
-        try {
-            CreateIndexResponse response = client.admin().indices().prepareCreate(index)
-                    .setSettings(getIndexSettings())
-                    .addMapping(Constants.ES_TYPE_GALLERY, getGalleryMappings())
-                    .get();
+        CreateIndexResponse response = client.admin().indices().prepareCreate(index)
+                .setSettings(getIndexSettings())
+                .addMapping(Constants.ES_TYPE_GALLERY, getGalleryMappings())
+                .get();
 
-            if (response.isAcknowledged()) {
-                log.debug("Index " + index + " created");
-            } else {
-                throw new RuntimeException("Index " + index + " not created");
-            }
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException("Index " + index + " not created", e.getCause());
+        if (response.isAcknowledged()) {
+            log.debug("Index " + index + " created");
+        } else {
+            throw new RuntimeException("Index " + index + " not created");
         }
     }
 
@@ -102,19 +96,15 @@ public class SearchService {
 
         String index = elasticsearchProperties.getIndexSearchWord();
 
-        try {
-            CreateIndexResponse response = client.admin().indices().prepareCreate(index)
-                    .setSettings(getIndexSettings())
-                    .addMapping(Constants.ES_TYPE_SEARCH_WORD, getSearchWordMappings())
-                    .get();
+        CreateIndexResponse response = client.admin().indices().prepareCreate(index)
+                .setSettings(getIndexSettings())
+                .addMapping(Constants.ES_TYPE_SEARCH_WORD, getSearchWordMappings())
+                .get();
 
-            if (response.isAcknowledged()) {
-                log.debug("Index " + index + " created");
-            } else {
-                throw new RuntimeException("Index " + index + " not created");
-            }
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException("Index " + index + " not created", e.getCause());
+        if (response.isAcknowledged()) {
+            log.debug("Index " + index + " created");
+        } else {
+            throw new RuntimeException("Index " + index + " not created");
         }
     }
 
@@ -171,7 +161,7 @@ public class SearchService {
                 );
 
                 try {
-                    index.setSource(ObjectMapperUtils.writeValueAsString(post));
+                    index.setSource(ObjectMapperUtils.writeValueAsString(post), XContentType.JSON);
                     bulkProcessor.add(index.request());
 
                 } catch (JsonProcessingException e) {
@@ -234,7 +224,7 @@ public class SearchService {
                             .setType(Constants.ES_TYPE_COMMENT)
                             .setId(comment.getId())
                             .setParent(comment.getArticle().getId())
-                            .setSource(ObjectMapperUtils.writeValueAsString(comment));
+                            .setSource(ObjectMapperUtils.writeValueAsString(comment), XContentType.JSON);
 
                     bulkProcessor.add(index.request());
 
@@ -274,7 +264,7 @@ public class SearchService {
                 );
 
                 try {
-                    index.setSource(ObjectMapperUtils.writeValueAsString(comment));
+                    index.setSource(ObjectMapperUtils.writeValueAsString(comment), XContentType.JSON);
                     bulkProcessor.add(index.request());
 
                 } catch (JsonProcessingException e) {
@@ -365,6 +355,10 @@ public class SearchService {
 
         String[] userWords = new String[]{
                 "k리그",
+                "k리그1",
+                "k리그2",
+                "k1",
+                "k2",
                 "내셔널리그",
                 "k3리그",
                 "k3",
@@ -396,7 +390,7 @@ public class SearchService {
                         "N", "SL", "SH", "SN", "XR", "V", "UNK", "I", "M");
     }
 
-    private String getArticleMappings() throws JsonProcessingException {
+    private Map<String, Object> getArticleMappings() {
 
         ObjectMapper objectMapper = ObjectMapperUtils.getObjectMapper();
         JsonNodeFactory jsonNodeFactory = JsonNodeFactory.instance;
@@ -456,10 +450,10 @@ public class SearchService {
         ObjectNode mappings = jsonNodeFactory.objectNode();
         mappings.set("properties", propertiesNode);
 
-        return objectMapper.writeValueAsString(mappings);
+        return objectMapper.convertValue(mappings, Map.class);
     }
 
-    private String getArticleCommentMappings() throws JsonProcessingException {
+    private Map<String, Object> getArticleCommentMappings() {
 
         ObjectMapper objectMapper = ObjectMapperUtils.getObjectMapper();
         JsonNodeFactory jsonNodeFactory = JsonNodeFactory.instance;
@@ -500,10 +494,10 @@ public class SearchService {
         mappings.set("_parent", parentNode);
         mappings.set("properties", propertiesNode);
 
-        return objectMapper.writeValueAsString(mappings);
+        return objectMapper.convertValue(mappings, Map.class);
     }
 
-    private String getGalleryMappings() throws JsonProcessingException {
+    private Map<String, Object> getGalleryMappings() {
         ObjectMapper objectMapper = ObjectMapperUtils.getObjectMapper();
 
         ObjectNode idNode = objectMapper.createObjectNode();
@@ -543,10 +537,10 @@ public class SearchService {
         ObjectNode mappings = objectMapper.createObjectNode();
         mappings.set("properties", propertiesNode);
 
-        return objectMapper.writeValueAsString(mappings);
+        return objectMapper.convertValue(mappings, Map.class);
     }
 
-    private String getSearchWordMappings() throws JsonProcessingException {
+    private Map<String, Object> getSearchWordMappings() {
         ObjectMapper objectMapper = ObjectMapperUtils.getObjectMapper();
 
         JsonNodeFactory jsonNodeFactory = JsonNodeFactory.instance;
@@ -577,6 +571,6 @@ public class SearchService {
         ObjectNode mappings = jsonNodeFactory.objectNode();
         mappings.set("properties", propertiesNode);
 
-        return objectMapper.writeValueAsString(mappings);
+        return objectMapper.convertValue(mappings, Map.class);
     }
 }
