@@ -1,5 +1,31 @@
 package com.jakduk.batch.service;
 
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
+
+import javax.annotation.Resource;
+
+import org.apache.commons.lang3.StringUtils;
+import org.bson.types.ObjectId;
+import org.elasticsearch.action.admin.indices.create.CreateIndexResponse;
+import org.elasticsearch.action.admin.indices.delete.DeleteIndexRequest;
+import org.elasticsearch.action.bulk.BulkProcessor;
+import org.elasticsearch.action.bulk.BulkRequest;
+import org.elasticsearch.action.bulk.BulkResponse;
+import org.elasticsearch.action.index.IndexRequestBuilder;
+import org.elasticsearch.action.support.master.AcknowledgedResponse;
+import org.elasticsearch.client.Client;
+import org.elasticsearch.common.settings.Settings;
+import org.elasticsearch.common.unit.ByteSizeUnit;
+import org.elasticsearch.common.unit.ByteSizeValue;
+import org.elasticsearch.common.unit.TimeValue;
+import org.elasticsearch.common.xcontent.XContentType;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
@@ -17,31 +43,8 @@ import com.jakduk.batch.model.elasticsearch.EsGallery;
 import com.jakduk.batch.repository.ArticleCommentRepository;
 import com.jakduk.batch.repository.ArticleRepository;
 import com.jakduk.batch.repository.GalleryRepository;
-import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
-import org.bson.types.ObjectId;
-import org.elasticsearch.action.admin.indices.create.CreateIndexResponse;
-import org.elasticsearch.action.admin.indices.delete.DeleteIndexRequest;
-import org.elasticsearch.action.admin.indices.delete.DeleteIndexResponse;
-import org.elasticsearch.action.bulk.BulkProcessor;
-import org.elasticsearch.action.bulk.BulkRequest;
-import org.elasticsearch.action.bulk.BulkResponse;
-import org.elasticsearch.action.index.IndexRequestBuilder;
-import org.elasticsearch.client.Client;
-import org.elasticsearch.common.settings.Settings;
-import org.elasticsearch.common.unit.ByteSizeUnit;
-import org.elasticsearch.common.unit.ByteSizeValue;
-import org.elasticsearch.common.unit.TimeValue;
-import org.elasticsearch.common.xcontent.XContentType;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
 
-import javax.annotation.Resource;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Created by pyohwanjang on 2017. 4. 7..
@@ -282,7 +285,7 @@ public class SearchService {
 
         String index = elasticsearchProperties.getIndexBoard();
 
-        DeleteIndexResponse response = client.admin().indices()
+        AcknowledgedResponse response = client.admin().indices()
                 .delete(new DeleteIndexRequest(index))
                 .actionGet();
 
@@ -297,7 +300,7 @@ public class SearchService {
 
         String index = elasticsearchProperties.getIndexGallery();
 
-        DeleteIndexResponse response = client.admin().indices()
+        AcknowledgedResponse response = client.admin().indices()
                 .delete(new DeleteIndexRequest(index))
                 .actionGet();
 
@@ -312,7 +315,7 @@ public class SearchService {
 
         String index = elasticsearchProperties.getIndexSearchWord();
 
-        DeleteIndexResponse response = client.admin().indices()
+        AcknowledgedResponse response = client.admin().indices()
                 .delete(new DeleteIndexRequest(index))
                 .actionGet();
 

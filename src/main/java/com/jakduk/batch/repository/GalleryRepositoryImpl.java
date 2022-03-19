@@ -1,8 +1,7 @@
 package com.jakduk.batch.repository;
 
-import com.jakduk.batch.common.Constants;
-import com.jakduk.batch.model.db.Gallery;
-import com.jakduk.batch.model.elasticsearch.EsGallery;
+import java.util.List;
+
 import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
@@ -15,7 +14,9 @@ import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Repository;
 import org.springframework.util.ObjectUtils;
 
-import java.util.List;
+import com.jakduk.batch.common.Constants;
+import com.jakduk.batch.model.db.Gallery;
+import com.jakduk.batch.model.elasticsearch.EsGallery;
 
 /**
  * Created by pyohwan on 16. 11. 30.
@@ -57,7 +58,7 @@ public class GalleryRepositoryImpl implements GalleryRepositoryCustom {
         query.addCriteria(Criteria.where("linkedItems.from").is(fromType));
         query.limit(limit);
 
-        query.with(new Sort(Sort.Direction.DESC, "_id"));
+        query.with(Sort.by(Sort.Direction.DESC, "_id"));
 
         return mongoTemplate.find(query, Gallery.class);
     }
