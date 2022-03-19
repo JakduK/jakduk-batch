@@ -11,21 +11,21 @@ logging:
 
 spring:
   datasource:
-    url: jdbc:mariadb://192.168.35.149:3306/JAKDUK_BATCH_DEV
-    username: root
+    url: jdbc:mariadb://192.168.0.19:3306/JAKDUK_BATCH_DEV
+    username: jakduk
     password: jakduk584
   batch:
     initialize-schema: never
   data:
     mongodb:
-      uri: mongodb://192.168.35.138/jakduk_test
+      uri: mongodb://192.168.0.12/jakduk_test
     elasticsearch:
       cluster-name: jakduk-elasticsearch
-      cluster-nodes: 192.168.35.151:9300,192.168.35.18:9300
+      cluster-nodes: 192.168.0.18:9300
       repositories:
         enabled: false
   rabbitmq:
-    addresses: 192.168.35.74
+    addresses: 192.168.0.15
     username: admin
     password: wkrenakstp@
     listener:
@@ -43,10 +43,10 @@ jakduk:
     bulk-size-mb: 50
 
   storage:
-    image-path: /Users/pyohwanjang/storage/image/
-    thumbnail-path: /Users/pyohwanjang/storage/thumbnail/
-    user-picture-large-path: /Users/pyohwanjang/storage/user/picture/large/
-    user-picture-small-path: /Users/pyohwanjang/storage/user/picture/small/
+    image-path: /jakduk/storage/image/
+    thumbnail-path: /jakduk/storage/thumbnail/
+    user-picture-large-path: /jakduk/storage/user/picture/large/
+    user-picture-small-path: /jakduk/storage/user/picture/small/
 
   rabbitmq:
     exchange-name: jakduk-dev
