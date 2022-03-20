@@ -1,12 +1,13 @@
 package com.jakduk.batch.model.elasticsearch;
 
+import java.util.List;
+
 import com.jakduk.batch.model.embedded.CommonWriter;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-
-import java.util.List;
 
 /**
 * @author <a href="mailto:phjang1983@daum.net">Jang,Pyohwan</a>
@@ -29,5 +30,5 @@ public class EsArticle {
 	private String subject;
 	private String content;
 	private List<String> galleries;
-
+	private String boardJoinField;
 }

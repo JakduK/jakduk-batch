@@ -1,6 +1,7 @@
 package com.jakduk.batch.service;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -70,7 +71,7 @@ public class SearchService {
 
         CreateIndexRequest createIndexRequest = new CreateIndexRequest(index);
         createIndexRequest.settings(this.getIndexSettings());
-        createIndexRequest.mapping(this.getArticleMappings());
+        createIndexRequest.mapping(this.getBoardMappings());
 
         CreateIndexResponse createIndexResponse = highLevelClient.indices().create(createIndexRequest, RequestOptions.DEFAULT);
 
@@ -126,32 +127,33 @@ public class SearchService {
             List<Article> articles = articleRepository.findPostsGreaterThanId(lastPostId, Constants.ES_BULK_LIMIT);
 
             List<EsArticle> esArticles = articles.stream()
-                    .filter(Objects::nonNull)
-                    .map(post -> {
-                        List<String> galleryIds = null;
+                .filter(Objects::nonNull)
+                .map(post -> {
+                    List<String> galleryIds = null;
 
-                        if (post.getLinkedGallery()) {
-                            List<Gallery> galleries = galleryRepository.findByItemIdAndFromType(
-                                    new ObjectId(post.getId()), Constants.GALLERY_FROM_TYPE.ARTICLE.name(), 1);
+                    if (post.getLinkedGallery()) {
+                        List<Gallery> galleries = galleryRepository.findByItemIdAndFromType(
+                            new ObjectId(post.getId()), Constants.GALLERY_FROM_TYPE.ARTICLE.name(), 1);
 
-                            galleryIds = galleries.stream()
-                                    .filter(Objects::nonNull)
-                                    .map(Gallery::getId)
-                                    .collect(Collectors.toList());
-                        }
+                        galleryIds = galleries.stream()
+                            .filter(Objects::nonNull)
+                            .map(Gallery::getId)
+                            .collect(Collectors.toList());
+                    }
 
-                        return EsArticle.builder()
-                                .id(post.getId())
-                                .seq(post.getSeq())
-                                .board(post.getBoard())
-                                .writer(post.getWriter())
-                                .subject(JakdukUtils.stripHtmlTag(post.getSubject()))
-                                .content(JakdukUtils.stripHtmlTag(post.getContent()))
-                                .category(StringUtils.defaultIfBlank(post.getCategory(), null))
-                                .galleries(galleryIds)
-                                .build();
-                    })
-                    .collect(Collectors.toList());
+                    return EsArticle.builder()
+                        .id(post.getId())
+                        .seq(post.getSeq())
+                        .board(post.getBoard())
+                        .writer(post.getWriter())
+                        .subject(JakdukUtils.stripHtmlTag(post.getSubject()))
+                        .content(JakdukUtils.stripHtmlTag(post.getContent()))
+                        .category(StringUtils.defaultIfBlank(post.getCategory(), null))
+                        .galleries(galleryIds)
+                        .boardJoinField(Constants.ES_TYPE_ARTICLE)
+                        .build();
+                })
+                .collect(Collectors.toList());
 
             if (esArticles.isEmpty()) {
                 hasPost = false;
@@ -364,114 +366,81 @@ public class SearchService {
                 .put("analysis.tokenizer.korean.decompound_mode", "none");
     }
 
-    private Map getArticleMappings() {
-
-        ObjectMapper objectMapper = ObjectMapperUtils.getObjectMapper();
-        JsonNodeFactory jsonNodeFactory = JsonNodeFactory.instance;
-        ObjectNode propertiesNode = jsonNodeFactory.objectNode();
-
-        propertiesNode.set("id",
-                jsonNodeFactory.objectNode()
-                        .put("type", "string"));
-
-        propertiesNode.set("seq",
-                jsonNodeFactory.objectNode()
-                        .put("type", "integer")
-                        .put("index", "no")
-        );
-
-        propertiesNode.set("board",
-                jsonNodeFactory.objectNode()
-                        .put("type", "string")
-                        .put("index", "not_analyzed")
-        );
-
-        propertiesNode.set("category",
-                jsonNodeFactory.objectNode()
-                        .put("type", "string")
-                        .put("index", "not_analyzed")
-        );
-
-        propertiesNode.set("subject",
-                jsonNodeFactory.objectNode()
-                        .put("type", "string")
-                        .put("analyzer", "korean")
-        );
-
-        propertiesNode.set("content",
-                jsonNodeFactory.objectNode()
-                        .put("type", "string")
-                        .put("analyzer", "korean")
-        );
-
-        propertiesNode.set("galleries",
-                jsonNodeFactory.objectNode()
-                        .put("type", "string")
-                        .put("index", "no")
-        );
-
-        ObjectNode writerNode = jsonNodeFactory.objectNode();
-        writerNode.set("providerId", jsonNodeFactory.objectNode().put("type", "string").put("index", "no"));
-        writerNode.set("userId", jsonNodeFactory.objectNode().put("type", "string").put("index", "no"));
-        writerNode.set("username", jsonNodeFactory.objectNode().put("type", "string").put("index", "no"));
-        propertiesNode.set("writer", jsonNodeFactory.objectNode().set("properties", writerNode));
-
-        propertiesNode.set("registerDate",
-                jsonNodeFactory.objectNode()
-                        .put("type", "date")
-        );
-
-        ObjectNode mappings = jsonNodeFactory.objectNode();
-        mappings.set("properties", propertiesNode);
-        mappings.set("board_join_field", jsonNodeFactory.objectNode()
-            .put("type", "join")
-            .set("relations", jsonNodeFactory.objectNode()
-                .put("article", "comment"))
-        );
-
-        return objectMapper.convertValue(mappings, Map.class);
-    }
-
-    private Map getArticleCommentMappings() {
-
-        ObjectMapper objectMapper = ObjectMapperUtils.getObjectMapper();
-        JsonNodeFactory jsonNodeFactory = JsonNodeFactory.instance;
-        ObjectNode propertiesNode = jsonNodeFactory.objectNode();
-
-        propertiesNode.set("id", jsonNodeFactory.objectNode().put("type", "string"));
-
-        ObjectNode articleNode = jsonNodeFactory.objectNode();
-        articleNode.set("id", jsonNodeFactory.objectNode().put("type", "string").put("index", "no"));
-        articleNode.set("seq", jsonNodeFactory.objectNode().put("type", "integer").put("index", "no"));
-        articleNode.set("board", jsonNodeFactory.objectNode().put("type", "string").put("index", "no"));
-        propertiesNode.set("article", jsonNodeFactory.objectNode().set("properties", articleNode));
-
-        ObjectNode writerNode = jsonNodeFactory.objectNode();
-        writerNode.set("providerId", jsonNodeFactory.objectNode().put("type", "string").put("index", "no"));
-        writerNode.set("userId", jsonNodeFactory.objectNode().put("type", "string").put("index", "no"));
-        writerNode.set("username", jsonNodeFactory.objectNode().put("type", "string").put("index", "no"));
-        propertiesNode.set("writer", jsonNodeFactory.objectNode().set("properties", writerNode));
-
-        propertiesNode.set("content",
-                jsonNodeFactory.objectNode()
-                        .put("type", "string")
-                        .put("analyzer", "korean")
-        );
-
-        propertiesNode.set("galleries",
-                jsonNodeFactory.objectNode()
-                        .put("type", "string")
-                        .put("index", "no")
-        );
-
-        ObjectNode parentNode = objectMapper.createObjectNode();
-        parentNode.put("type", Constants.ES_TYPE_ARTICLE);
-
-        ObjectNode mappings = jsonNodeFactory.objectNode();
-        mappings.set("_parent", parentNode);
-        mappings.set("properties", propertiesNode);
-
-        return objectMapper.convertValue(mappings, Map.class);
+    private Map getBoardMappings() {
+        return new HashMap<String, Object>() {{
+            put("properties", new HashMap<String, Object>() {{
+                put("id", new HashMap<String, String >() {{
+                    put("type", "string");
+                }});
+                put("seq", new HashMap<String, String >() {{
+                    put("type", "integer");
+                    put("index", "no");
+                }});
+                put("board", new HashMap<String, String >() {{
+                    put("type", "string");
+                    put("index", "not_analyzed");
+                }});
+                put("category", new HashMap<String, String >() {{
+                    put("type", "string");
+                    put("index", "not_analyzed");
+                }});
+                put("subject", new HashMap<String, String >() {{
+                    put("type", "string");
+                    put("analyzer", "korean");
+                }});
+                put("content", new HashMap<String, String >() {{
+                    put("type", "string");
+                    put("analyzer", "korean");
+                }});
+                put("galleries", new HashMap<String, String >() {{
+                    put("type", "string");
+                    put("index", "no");
+                }});
+                put("writer", new HashMap<String, Object >() {{
+                    put("properties", new HashMap<String, Object>() {{
+                        put("providerId", new HashMap<String, String>() {{
+                            put("type", "string");
+                            put("index", "no");
+                        }});
+                        put("userId", new HashMap<String, String>() {{
+                            put("type", "string");
+                            put("index", "no");
+                        }});
+                        put("username", new HashMap<String, String>() {{
+                            put("type", "string");
+                            put("index", "no");
+                        }});
+                    }});
+                }});
+                put("registerDate", new HashMap<String, String >() {{
+                    put("type", "date");
+                }});
+                // for Comment Index
+                put("article", new HashMap<String, Object>() {{
+                    put("properties", new HashMap<String, Object>() {{
+                        put("id", new HashMap<String, String>() {{
+                            put("type", "string");
+                            put("index", "no");
+                        }});
+                        put("seq", new HashMap<String, String>() {{
+                            put("type", "integer");
+                            put("index", "no");
+                        }});
+                        put("board", new HashMap<String, String>() {{
+                            put("type", "string");
+                            put("index", "no");
+                        }});
+                    }});
+                }});
+            }});
+            // for Join field type
+            put("boardJoinField", new HashMap<String, Object>() {{
+                put("type", "join");
+                put("relations", new HashMap<String, String>() {{
+                    put(Constants.ES_TYPE_ARTICLE, Constants.ES_TYPE_COMMENT);
+                }});
+            }});
+        }};
     }
 
     private Map<String, Object> getGalleryMappings() {
