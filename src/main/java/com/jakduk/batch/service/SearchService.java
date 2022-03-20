@@ -393,7 +393,7 @@ public class SearchService {
                         "N", "SL", "SH", "SN", "XR", "V", "UNK", "I", "M");
     }
 
-    private Map<String, Object> getArticleMappings() {
+    private Map getArticleMappings() {
 
         ObjectMapper objectMapper = ObjectMapperUtils.getObjectMapper();
         JsonNodeFactory jsonNodeFactory = JsonNodeFactory.instance;
@@ -452,6 +452,11 @@ public class SearchService {
 
         ObjectNode mappings = jsonNodeFactory.objectNode();
         mappings.set("properties", propertiesNode);
+        mappings.set("board_join_field", jsonNodeFactory.objectNode()
+            .put("type", "join")
+            .set("relations", jsonNodeFactory.objectNode()
+                .put("article", "comment"))
+        );
 
         return objectMapper.convertValue(mappings, Map.class);
     }
