@@ -1,5 +1,6 @@
 package com.jakduk.batch.service;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -10,14 +11,16 @@ import javax.annotation.Resource;
 
 import org.apache.commons.lang3.StringUtils;
 import org.bson.types.ObjectId;
-import org.elasticsearch.action.admin.indices.create.CreateIndexResponse;
 import org.elasticsearch.action.admin.indices.delete.DeleteIndexRequest;
 import org.elasticsearch.action.bulk.BulkProcessor;
 import org.elasticsearch.action.bulk.BulkRequest;
 import org.elasticsearch.action.bulk.BulkResponse;
-import org.elasticsearch.action.index.IndexRequestBuilder;
+import org.elasticsearch.action.index.IndexRequest;
 import org.elasticsearch.action.support.master.AcknowledgedResponse;
-import org.elasticsearch.client.Client;
+import org.elasticsearch.client.RequestOptions;
+import org.elasticsearch.client.RestHighLevelClient;
+import org.elasticsearch.client.indices.CreateIndexRequest;
+import org.elasticsearch.client.indices.CreateIndexResponse;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.unit.ByteSizeUnit;
 import org.elasticsearch.common.unit.ByteSizeValue;
@@ -56,55 +59,56 @@ public class SearchService {
 
     @Resource private JakdukProperties.Elasticsearch elasticsearchProperties;
 
-    @Autowired private Client client;
+    @Autowired private RestHighLevelClient highLevelClient;
     @Autowired private ArticleRepository articleRepository;
     @Autowired private GalleryRepository galleryRepository;
     @Autowired private ArticleCommentRepository articleCommentRepository;
 
-    public void createIndexBoard() {
+    public void createIndexBoard() throws IOException {
 
         String index = elasticsearchProperties.getIndexBoard();
 
-        CreateIndexResponse response = client.admin().indices().prepareCreate(index)
-                .setSettings(getIndexSettings())
-                .addMapping(Constants.ES_TYPE_ARTICLE, getArticleMappings())
-                .addMapping(Constants.ES_TYPE_COMMENT, getArticleCommentMappings())
-                .get();
+        CreateIndexRequest createIndexRequest = new CreateIndexRequest(index);
+        createIndexRequest.settings(this.getIndexSettings());
+        createIndexRequest.mapping(this.getArticleMappings());
 
-        if (response.isAcknowledged()) {
+        CreateIndexResponse createIndexResponse = highLevelClient.indices().create(createIndexRequest, RequestOptions.DEFAULT);
+
+        if (createIndexResponse.isAcknowledged()) {
             log.debug("Index " + index + " created");
         } else {
             throw new RuntimeException("Index " + index + " not created");
         }
-
     }
 
-    public void createIndexGallery() {
+    public void createIndexGallery() throws IOException {
 
         String index = elasticsearchProperties.getIndexGallery();
 
-        CreateIndexResponse response = client.admin().indices().prepareCreate(index)
-                .setSettings(getIndexSettings())
-                .addMapping(Constants.ES_TYPE_GALLERY, getGalleryMappings())
-                .get();
+        CreateIndexRequest createIndexRequest = new CreateIndexRequest(index);
+        createIndexRequest.settings(this.getIndexSettings());
+        createIndexRequest.mapping(this.getGalleryMappings());
 
-        if (response.isAcknowledged()) {
+        CreateIndexResponse createIndexResponse = highLevelClient.indices().create(createIndexRequest, RequestOptions.DEFAULT);
+
+        if (createIndexResponse.isAcknowledged()) {
             log.debug("Index " + index + " created");
         } else {
             throw new RuntimeException("Index " + index + " not created");
         }
     }
 
-    public void createIndexSearchWord() {
+    public void createIndexSearchWord() throws IOException {
 
         String index = elasticsearchProperties.getIndexSearchWord();
 
-        CreateIndexResponse response = client.admin().indices().prepareCreate(index)
-                .setSettings(getIndexSettings())
-                .addMapping(Constants.ES_TYPE_SEARCH_WORD, getSearchWordMappings())
-                .get();
+        CreateIndexRequest createIndexRequest = new CreateIndexRequest(index);
+        createIndexRequest.settings(this.getIndexSettings());
+        createIndexRequest.mapping(this.getSearchWordMappings());
 
-        if (response.isAcknowledged()) {
+        CreateIndexResponse createIndexResponse = highLevelClient.indices().create(createIndexRequest, RequestOptions.DEFAULT);
+
+        if (createIndexResponse.isAcknowledged()) {
             log.debug("Index " + index + " created");
         } else {
             throw new RuntimeException("Index " + index + " not created");
@@ -157,16 +161,10 @@ public class SearchService {
             }
 
             esArticles.forEach(post -> {
-                IndexRequestBuilder index = client.prepareIndex(
-                        elasticsearchProperties.getIndexBoard(),
-                        Constants.ES_TYPE_ARTICLE,
-                        post.getId()
-                );
-
                 try {
-                    index.setSource(ObjectMapperUtils.writeValueAsString(post), XContentType.JSON);
-                    bulkProcessor.add(index.request());
-
+                    IndexRequest indexRequest = new IndexRequest(elasticsearchProperties.getIndexBoard(), Constants.ES_TYPE_ARTICLE, post.getId());
+                    indexRequest.source(ObjectMapperUtils.writeValueAsString(post), XContentType.JSON);
+                    bulkProcessor.add(indexRequest);
                 } catch (JsonProcessingException e) {
                     log.error(e.getLocalizedMessage());
                 }
@@ -222,15 +220,10 @@ public class SearchService {
 
             esComments.forEach(comment -> {
                 try {
-                    IndexRequestBuilder index = client.prepareIndex()
-                            .setIndex(elasticsearchProperties.getIndexBoard())
-                            .setType(Constants.ES_TYPE_COMMENT)
-                            .setId(comment.getId())
-                            .setParent(comment.getArticle().getId())
-                            .setSource(ObjectMapperUtils.writeValueAsString(comment), XContentType.JSON);
-
-                    bulkProcessor.add(index.request());
-
+                    IndexRequest indexRequest = new IndexRequest(elasticsearchProperties.getIndexBoard(), Constants.ES_TYPE_COMMENT, comment.getId());
+                    indexRequest.source(ObjectMapperUtils.writeValueAsString(comment), XContentType.JSON);
+                    indexRequest.parent(comment.getArticle().getId());
+                    bulkProcessor.add(indexRequest);
                 } catch (JsonProcessingException e) {
                     log.error(e.getLocalizedMessage());
                 }
@@ -260,15 +253,10 @@ public class SearchService {
             }
 
             comments.forEach(comment -> {
-                IndexRequestBuilder index = client.prepareIndex(
-                        elasticsearchProperties.getIndexGallery(),
-                        Constants.ES_TYPE_GALLERY,
-                        comment.getId()
-                );
-
                 try {
-                    index.setSource(ObjectMapperUtils.writeValueAsString(comment), XContentType.JSON);
-                    bulkProcessor.add(index.request());
+                    IndexRequest indexRequest = new IndexRequest(elasticsearchProperties.getIndexGallery(), Constants.ES_TYPE_GALLERY, comment.getId());
+                    indexRequest.source(ObjectMapperUtils.writeValueAsString(comment), XContentType.JSON);
+                    bulkProcessor.add(indexRequest);
 
                 } catch (JsonProcessingException e) {
                     log.error(e.getLocalizedMessage());
@@ -281,13 +269,10 @@ public class SearchService {
         bulkProcessor.awaitClose(Constants.ES_AWAIT_CLOSE_TIMEOUT_MINUTES, TimeUnit.MINUTES);
     }
 
-    public void deleteIndexBoard() {
+    public void deleteIndexBoard() throws IOException {
 
         String index = elasticsearchProperties.getIndexBoard();
-
-        AcknowledgedResponse response = client.admin().indices()
-                .delete(new DeleteIndexRequest(index))
-                .actionGet();
+        AcknowledgedResponse response = highLevelClient.indices().delete(new DeleteIndexRequest(index), RequestOptions.DEFAULT);
 
         if (response.isAcknowledged()) {
             log.debug("Index {} deleted." + index);
@@ -296,13 +281,10 @@ public class SearchService {
         }
     }
 
-    public void deleteIndexGallery() {
+    public void deleteIndexGallery() throws IOException {
 
         String index = elasticsearchProperties.getIndexGallery();
-
-        AcknowledgedResponse response = client.admin().indices()
-                .delete(new DeleteIndexRequest(index))
-                .actionGet();
+        AcknowledgedResponse response = highLevelClient.indices().delete(new DeleteIndexRequest(index), RequestOptions.DEFAULT);
 
         if (response.isAcknowledged()) {
             log.debug("Index {} deleted." + index);
@@ -311,14 +293,10 @@ public class SearchService {
         }
     }
 
-    public void deleteIndexSearchWord() {
+    public void deleteIndexSearchWord() throws IOException {
 
         String index = elasticsearchProperties.getIndexSearchWord();
-
-        AcknowledgedResponse response = client.admin().indices()
-                .delete(new DeleteIndexRequest(index))
-                .actionGet();
-
+        AcknowledgedResponse response = highLevelClient.indices().delete(new DeleteIndexRequest(index), RequestOptions.DEFAULT);
         if (response.isAcknowledged()) {
             log.debug("Index {} deleted." + index);
         } else {
@@ -343,12 +321,14 @@ public class SearchService {
             }
         };
 
-        return BulkProcessor.builder(client, bulkProcessorListener)
-                .setBulkActions(elasticsearchProperties.getBulkActions())
-                .setBulkSize(new ByteSizeValue(elasticsearchProperties.getBulkSizeMb(), ByteSizeUnit.MB))
-                .setFlushInterval(TimeValue.timeValueSeconds(elasticsearchProperties.getBulkFlushIntervalSeconds()))
-                .setConcurrentRequests(elasticsearchProperties.getBulkConcurrentRequests())
-                .build();
+        return BulkProcessor.builder(
+                (bulkRequest, bulkResponseActionListener) -> highLevelClient.bulkAsync(bulkRequest, RequestOptions.DEFAULT, bulkResponseActionListener),
+                bulkProcessorListener)
+            .setBulkActions(elasticsearchProperties.getBulkActions())
+            .setBulkSize(new ByteSizeValue(elasticsearchProperties.getBulkSizeMb(), ByteSizeUnit.MB))
+            .setFlushInterval(TimeValue.timeValueSeconds(elasticsearchProperties.getBulkFlushIntervalSeconds()))
+            .setConcurrentRequests(elasticsearchProperties.getBulkConcurrentRequests())
+            .build();
     }
 
     private Settings.Builder getIndexSettings() {
@@ -443,6 +423,11 @@ public class SearchService {
 
         ObjectNode mappings = jsonNodeFactory.objectNode();
         mappings.set("properties", propertiesNode);
+        mappings.set("board_join_field", jsonNodeFactory.objectNode()
+            .put("type", "join")
+            .set("relations", jsonNodeFactory.objectNode()
+                .put("article", "comment"))
+        );
 
         return objectMapper.convertValue(mappings, Map.class);
     }
