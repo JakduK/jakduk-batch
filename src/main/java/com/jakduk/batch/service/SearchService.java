@@ -164,7 +164,8 @@ public class SearchService {
 
             esArticles.forEach(post -> {
                 try {
-                    IndexRequest indexRequest = new IndexRequest(elasticsearchProperties.getIndexBoard(), Constants.ES_TYPE_ARTICLE, post.getId());
+                    IndexRequest indexRequest = new IndexRequest(elasticsearchProperties.getIndexBoard());
+                    indexRequest.id(post.getId());
                     indexRequest.source(ObjectMapperUtils.writeValueAsString(post), XContentType.JSON);
                     bulkProcessor.add(indexRequest);
                 } catch (JsonProcessingException e) {
@@ -189,29 +190,35 @@ public class SearchService {
             List<ArticleComment> comments = articleCommentRepository.findCommentsGreaterThanId(lastCommentId, Constants.ES_BULK_LIMIT);
 
             List<EsComment> esComments = comments.stream()
-                    .filter(Objects::nonNull)
-                    .map(comment -> {
-                        List<String> galleryIds = null;
+                .filter(Objects::nonNull)
+                .map(comment -> {
+                    List<String> galleryIds = null;
 
-                        if (comment.getLinkedGallery()) {
-                            List<Gallery> galleries = galleryRepository.findByItemIdAndFromType(
-                                    new ObjectId(comment.getId()), Constants.GALLERY_FROM_TYPE.ARTICLE_COMMENT.name(), 1);
+                    if (comment.getLinkedGallery()) {
+                        List<Gallery> galleries = galleryRepository.findByItemIdAndFromType(
+                            new ObjectId(comment.getId()), Constants.GALLERY_FROM_TYPE.ARTICLE_COMMENT.name(), 1);
 
-                            galleryIds = galleries.stream()
-                                    .filter(Objects::nonNull)
-                                    .map(Gallery::getId)
-                                    .collect(Collectors.toList());
-                        }
+                        galleryIds = galleries.stream()
+                            .filter(Objects::nonNull)
+                            .map(Gallery::getId)
+                            .collect(Collectors.toList());
+                    }
 
-                        return EsComment.builder()
-                                .id(comment.getId())
-                                .article(comment.getArticle())
-                                .writer(comment.getWriter())
-                                .content(JakdukUtils.stripHtmlTag(comment.getContent()))
-                                .galleries(galleryIds)
-                                .build();
-                    })
-                    .collect(Collectors.toList());
+                    return EsComment.builder()
+                        .id(comment.getId())
+                        .article(comment.getArticle())
+                        .writer(comment.getWriter())
+                        .content(JakdukUtils.stripHtmlTag(comment.getContent()))
+                        .galleries(galleryIds)
+                        .boardJoinField(
+                            new HashMap<String, Object>() {{
+                                put("name", Constants.ES_TYPE_COMMENT);
+                                put("parent", comment.getArticle().getId());
+                            }}
+                        )
+                        .build();
+                })
+                .collect(Collectors.toList());
 
             if (esComments.isEmpty()) {
                 hasComment = false;
@@ -222,9 +229,9 @@ public class SearchService {
 
             esComments.forEach(comment -> {
                 try {
-                    IndexRequest indexRequest = new IndexRequest(elasticsearchProperties.getIndexBoard(), Constants.ES_TYPE_COMMENT, comment.getId());
+                    IndexRequest indexRequest = new IndexRequest(elasticsearchProperties.getIndexBoard());
+                    indexRequest.id(comment.getId());
                     indexRequest.source(ObjectMapperUtils.writeValueAsString(comment), XContentType.JSON);
-                    indexRequest.parent(comment.getArticle().getId());
                     bulkProcessor.add(indexRequest);
                 } catch (JsonProcessingException e) {
                     log.error(e.getLocalizedMessage());
@@ -334,10 +341,6 @@ public class SearchService {
     }
 
     private Settings.Builder getIndexSettings() {
-
-        //settingsBuilder.put("number_of_shards", 5);
-        //settingsBuilder.put("number_of_replicas", 1);
-
         String[] userWords = new String[]{
                 "k리그",
                 "k리그1",
@@ -432,12 +435,12 @@ public class SearchService {
                         }});
                     }});
                 }});
-            }});
-            // for Join field type
-            put("boardJoinField", new HashMap<String, Object>() {{
-                put("type", "join");
-                put("relations", new HashMap<String, String>() {{
-                    put(Constants.ES_TYPE_ARTICLE, Constants.ES_TYPE_COMMENT);
+                // for Join field type
+                put("boardJoinField", new HashMap<String, Object>() {{
+                    put("type", "join");
+                    put("relations", new HashMap<String, String>() {{
+                        put(Constants.ES_TYPE_ARTICLE, Constants.ES_TYPE_COMMENT);
+                    }});
                 }});
             }});
         }};
