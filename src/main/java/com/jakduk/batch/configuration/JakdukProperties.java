@@ -5,9 +5,13 @@ import lombok.Getter;
 import lombok.Setter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.validation.annotation.Validated;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+
+import javax.validation.constraints.NotEmpty;
 
 /**
  * Created by Jang,Pyohwan on 2017. 6. 12..
@@ -26,7 +30,10 @@ public class JakdukProperties {
     @Setter
     @Configuration
     @ConfigurationProperties("jakduk.elasticsearch")
+    @Validated
     public class Elasticsearch {
+        @NotEmpty
+        private List<String> hostAndPort;
         private String indexBoard;
         private String indexGallery;
         private String indexSearchWord;
