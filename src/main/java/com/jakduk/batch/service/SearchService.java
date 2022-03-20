@@ -360,11 +360,8 @@ public class SearchService {
                 "k리그",
                 "k리그1",
                 "k리그2",
-                "k1",
-                "k2",
-                "내셔널리그",
                 "k3리그",
-                "k3",
+                "k4리그",
                 "성남fc",
                 "수원fc",
                 "인천utd",
@@ -382,15 +379,9 @@ public class SearchService {
         };
 
         return Settings.builder()
-
-                .put("index.analysis.analyzer.korean.type", "custom")
-                .put("index.analysis.analyzer.korean.tokenizer", "seunjeon_default_tokenizer")
-                .putList("index.analysis.tokenizer.seunjeon_default_tokenizer.user_words", userWords)
-                .put("index.analysis.tokenizer.seunjeon_default_tokenizer.type", "seunjeon_tokenizer")
-                .put("index.analysis.tokenizer.seunjeon_default_tokenizer.pos_tagging", false)
-                .put("index.analysis.tokenizer.seunjeon_default_tokenizer.decompound", true)
-                .putList("index.analysis.tokenizer.seunjeon_default_tokenizer.index_poses",
-                        "N", "SL", "SH", "SN", "XR", "V", "UNK", "I", "M");
+                .put("analysis.tokenizer.korean.type", "nori_tokenizer")
+                .putList("analysis.tokenizer.korean.user_dictionary_rules", userWords)
+                .put("analysis.tokenizer.korean.decompound_mode", "none");
     }
 
     private Map getArticleMappings() {
@@ -461,15 +452,13 @@ public class SearchService {
         return objectMapper.convertValue(mappings, Map.class);
     }
 
-    private Map<String, Object> getArticleCommentMappings() {
+    private Map getArticleCommentMappings() {
 
         ObjectMapper objectMapper = ObjectMapperUtils.getObjectMapper();
         JsonNodeFactory jsonNodeFactory = JsonNodeFactory.instance;
         ObjectNode propertiesNode = jsonNodeFactory.objectNode();
 
-        propertiesNode.set("id",
-                jsonNodeFactory.objectNode()
-                        .put("type", "string"));
+        propertiesNode.set("id", jsonNodeFactory.objectNode().put("type", "string"));
 
         ObjectNode articleNode = jsonNodeFactory.objectNode();
         articleNode.set("id", jsonNodeFactory.objectNode().put("type", "string").put("index", "no"));
