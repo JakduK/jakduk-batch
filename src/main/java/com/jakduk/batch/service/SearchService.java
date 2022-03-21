@@ -22,6 +22,7 @@ import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.client.indices.CreateIndexRequest;
 import org.elasticsearch.client.indices.CreateIndexResponse;
+import org.elasticsearch.client.indices.GetIndexRequest;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.unit.ByteSizeUnit;
 import org.elasticsearch.common.unit.ByteSizeValue;
@@ -128,7 +129,7 @@ public class SearchService {
 
 		BulkProcessor bulkProcessor = getBulkProcessor();
 
-		Boolean hasPost = true;
+		boolean hasPost = true;
 		ObjectId lastPostId = null;
 
 		do {
@@ -289,37 +290,15 @@ public class SearchService {
 		bulkProcessor.awaitClose(Constants.ES_AWAIT_CLOSE_TIMEOUT_MINUTES, TimeUnit.MINUTES);
 	}
 
-	public void deleteIndexBoard() throws IOException {
-
-		String index = elasticsearchProperties.getIndexBoard();
-		AcknowledgedResponse response = highLevelClient.indices()
-			.delete(new DeleteIndexRequest(index), RequestOptions.DEFAULT);
-
-		if (response.isAcknowledged()) {
-			log.debug("Index {} deleted." + index);
-		} else {
-			throw new RuntimeException("Index " + index + " not deleted");
-		}
+	public boolean existsIndex(String index) throws IOException {
+		return highLevelClient.indices()
+			.exists(new GetIndexRequest(index), RequestOptions.DEFAULT);
 	}
 
-	public void deleteIndexGallery() throws IOException {
-
-		String index = elasticsearchProperties.getIndexGallery();
+	public void deleteIndex(String index) throws IOException {
 		AcknowledgedResponse response = highLevelClient.indices()
 			.delete(new DeleteIndexRequest(index), RequestOptions.DEFAULT);
 
-		if (response.isAcknowledged()) {
-			log.debug("Index {} deleted." + index);
-		} else {
-			throw new RuntimeException("Index " + index + " not deleted");
-		}
-	}
-
-	public void deleteIndexSearchWord() throws IOException {
-
-		String index = elasticsearchProperties.getIndexSearchWord();
-		AcknowledgedResponse response = highLevelClient.indices()
-			.delete(new DeleteIndexRequest(index), RequestOptions.DEFAULT);
 		if (response.isAcknowledged()) {
 			log.debug("Index {} deleted." + index);
 		} else {
@@ -358,7 +337,7 @@ public class SearchService {
 			.build();
 	}
 
-	private Settings.Builder getIndexSettings() {
+	private Settings getIndexSettings() {
 		String[] userWords = new String[] {
 			"k리그",
 			"k리그1",
@@ -381,36 +360,40 @@ public class SearchService {
 			"서울e"
 		};
 
+		// SEE: https://www.elastic.co/guide/en/elasticsearch/plugins/7.17/analysis-nori-tokenizer.html
 		return Settings.builder()
-			.put("analysis.tokenizer.korean.type", "nori_tokenizer")
-			.putList("analysis.tokenizer.korean.user_dictionary_rules", userWords)
-			.put("analysis.tokenizer.korean.decompound_mode", "none");
+			.put("index.analysis.tokenizer.korean_nori_tokenizer.type", "nori_tokenizer")
+			.put("index.analysis.tokenizer.korean_nori_tokenizer.decompound_mode", "none")
+			.putList("index.analysis.analyzer.korean_nori_tokenizer.user_dictionary_rules", userWords)
+			.put("index.analysis.analyzer.korean.type", "custom")
+			.put("index.analysis.analyzer.korean.tokenizer", "korean_nori_tokenizer")
+			.build();
 	}
 
 	private Map getBoardMappings() {
 		return new HashMap<String, Object>() {{
 			put("properties", new HashMap<String, Object>() {{
 				put("id", new HashMap<String, String>() {{
-					put("type", "string");
+					put("type", "keyword");
 				}});
 				put("seq", new HashMap<String, String>() {{
 					put("type", "integer");
 					put("index", "no");
 				}});
 				put("board", new HashMap<String, String>() {{
-					put("type", "string");
+					put("type", "constant_keyword");
 					put("index", "not_analyzed");
 				}});
 				put("category", new HashMap<String, String>() {{
-					put("type", "string");
+					put("type", "constant_keyword");
 					put("index", "not_analyzed");
 				}});
 				put("subject", new HashMap<String, String>() {{
-					put("type", "string");
+					put("type", "text");
 					put("analyzer", "korean");
 				}});
 				put("content", new HashMap<String, String>() {{
-					put("type", "string");
+					put("type", "text");
 					put("analyzer", "korean");
 				}});
 				put("galleries", new HashMap<String, String>() {{
@@ -420,11 +403,11 @@ public class SearchService {
 				put("writer", new HashMap<String, Object>() {{
 					put("properties", new HashMap<String, Object>() {{
 						put("providerId", new HashMap<String, String>() {{
-							put("type", "string");
+							put("type", "keyword");
 							put("index", "no");
 						}});
 						put("userId", new HashMap<String, String>() {{
-							put("type", "string");
+							put("type", "keyword");
 							put("index", "no");
 						}});
 						put("username", new HashMap<String, String>() {{
@@ -440,7 +423,7 @@ public class SearchService {
 				put("article", new HashMap<String, Object>() {{
 					put("properties", new HashMap<String, Object>() {{
 						put("id", new HashMap<String, String>() {{
-							put("type", "string");
+							put("type", "keyword");
 							put("index", "no");
 						}});
 						put("seq", new HashMap<String, String>() {{
@@ -448,7 +431,7 @@ public class SearchService {
 							put("index", "no");
 						}});
 						put("board", new HashMap<String, String>() {{
-							put("type", "string");
+							put("type", "constant_keyword");
 							put("index", "no");
 						}});
 					}});
