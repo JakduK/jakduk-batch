@@ -41,9 +41,10 @@ public class InitElasticsearchIndexConfig {
 	private SearchService searchService;
 
 	@Bean
-	public Job initElasticsearchIndexJob(@Qualifier("deleteIndexStep") Step deleteIndexStep,
+	public Job initElasticsearchIndexJob(
+		@Qualifier("deleteIndexStep") Step deleteIndexStep,
 		@Qualifier("initSearchIndexStep") Step initSearchIndexStep,
-		@Qualifier("initSearchDocumentsStep") Step initSearchDocumentsStep) throws Exception {
+		@Qualifier("initSearchDocumentsStep") Step initSearchDocumentsStep) {
 
 		return jobBuilderFactory.get("initElasticsearchIndexJob")
 			.incrementer(new RunIdIncrementer())

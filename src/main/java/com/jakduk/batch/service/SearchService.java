@@ -364,7 +364,7 @@ public class SearchService {
 		return Settings.builder()
 			.put("index.analysis.tokenizer.korean_nori_tokenizer.type", "nori_tokenizer")
 			.put("index.analysis.tokenizer.korean_nori_tokenizer.decompound_mode", "none")
-			.putList("index.analysis.analyzer.korean_nori_tokenizer.user_dictionary_rules", userWords)
+			.putList("index.analysis.tokenizer.korean_nori_tokenizer.user_dictionary_rules", userWords)
 			.put("index.analysis.analyzer.korean.type", "custom")
 			.put("index.analysis.analyzer.korean.tokenizer", "korean_nori_tokenizer")
 			.build();
@@ -376,17 +376,17 @@ public class SearchService {
 				put("id", new HashMap<String, String>() {{
 					put("type", "keyword");
 				}});
-				put("seq", new HashMap<String, String>() {{
+				put("seq", new HashMap<String, Object>() {{
 					put("type", "integer");
-					put("index", "no");
+					put("index", false);
 				}});
-				put("board", new HashMap<String, String>() {{
-					put("type", "constant_keyword");
-					put("index", "not_analyzed");
+				put("board", new HashMap<String, Object>() {{
+					put("type", "keyword");
+					put("index", false);
 				}});
-				put("category", new HashMap<String, String>() {{
-					put("type", "constant_keyword");
-					put("index", "not_analyzed");
+				put("category", new HashMap<String, Object>() {{
+					put("type", "keyword");
+					put("index", false);
 				}});
 				put("subject", new HashMap<String, String>() {{
 					put("type", "text");
@@ -396,23 +396,23 @@ public class SearchService {
 					put("type", "text");
 					put("analyzer", "korean");
 				}});
-				put("galleries", new HashMap<String, String>() {{
-					put("type", "string");
-					put("index", "no");
+				put("galleries", new HashMap<String, Object>() {{
+					put("type", "keyword");
+					put("index", false);
 				}});
 				put("writer", new HashMap<String, Object>() {{
 					put("properties", new HashMap<String, Object>() {{
-						put("providerId", new HashMap<String, String>() {{
+						put("providerId", new HashMap<String, Object>() {{
 							put("type", "keyword");
-							put("index", "no");
+							put("index", false);
 						}});
-						put("userId", new HashMap<String, String>() {{
+						put("userId", new HashMap<String, Object>() {{
 							put("type", "keyword");
-							put("index", "no");
+							put("index", false);
 						}});
-						put("username", new HashMap<String, String>() {{
-							put("type", "string");
-							put("index", "no");
+						put("username", new HashMap<String, Object>() {{
+							put("type", "keyword");
+							put("index", false);
 						}});
 					}});
 				}});
@@ -422,17 +422,17 @@ public class SearchService {
 				// for Comment Index
 				put("article", new HashMap<String, Object>() {{
 					put("properties", new HashMap<String, Object>() {{
-						put("id", new HashMap<String, String>() {{
+						put("id", new HashMap<String, Object>() {{
 							put("type", "keyword");
-							put("index", "no");
+							put("index", false);
 						}});
-						put("seq", new HashMap<String, String>() {{
+						put("seq", new HashMap<String, Object>() {{
 							put("type", "integer");
-							put("index", "no");
+							put("index", false);
 						}});
-						put("board", new HashMap<String, String>() {{
-							put("type", "constant_keyword");
-							put("index", "no");
+						put("board", new HashMap<String, Object>() {{
+							put("type", "keyword");
+							put("index", false);
 						}});
 					}});
 				}});
