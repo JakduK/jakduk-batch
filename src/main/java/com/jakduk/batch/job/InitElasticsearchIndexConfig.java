@@ -1,7 +1,12 @@
 package com.jakduk.batch.job;
 
+import javax.annotation.Resource;
+
+import com.jakduk.batch.configuration.JakdukProperties;
 import com.jakduk.batch.service.SearchService;
+
 import lombok.extern.slf4j.Slf4j;
+
 import org.elasticsearch.ResourceAlreadyExistsException;
 import org.elasticsearch.index.IndexNotFoundException;
 import org.springframework.batch.core.Job;
@@ -26,79 +31,85 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class InitElasticsearchIndexConfig {
 
-    @Autowired private JobBuilderFactory jobBuilderFactory;
-    @Autowired private StepBuilderFactory stepBuilderFactory;
-    @Autowired private SearchService searchService;
+	@Resource
+	private JakdukProperties.Elasticsearch elasticsearchProperties;
+	@Autowired
+	private JobBuilderFactory jobBuilderFactory;
+	@Autowired
+	private StepBuilderFactory stepBuilderFactory;
+	@Autowired
+	private SearchService searchService;
 
-    @Bean
-    public Job initElasticsearchIndexJob(@Qualifier("deleteIndexStep") Step deleteIndexStep,
-                                         @Qualifier("initSearchIndexStep") Step initSearchIndexStep,
-                                         @Qualifier("initSearchDocumentsStep") Step initSearchDocumentsStep) throws Exception {
+	@Bean
+	public Job initElasticsearchIndexJob(@Qualifier("deleteIndexStep") Step deleteIndexStep,
+		@Qualifier("initSearchIndexStep") Step initSearchIndexStep,
+		@Qualifier("initSearchDocumentsStep") Step initSearchDocumentsStep) throws Exception {
 
-        return jobBuilderFactory.get("initElasticsearchIndexJob")
-                .incrementer(new RunIdIncrementer())
-                .start(deleteIndexStep)
-                .next(initSearchIndexStep)
-                .next(initSearchDocumentsStep)
-                .build();
-    }
+		return jobBuilderFactory.get("initElasticsearchIndexJob")
+			.incrementer(new RunIdIncrementer())
+			.start(deleteIndexStep)
+			.next(initSearchIndexStep)
+			.next(initSearchDocumentsStep)
+			.build();
+	}
 
-    @Bean
-    public Step deleteIndexStep() {
-        return stepBuilderFactory.get("deleteIndexStep")
-                .tasklet((contribution, chunkContext) -> {
+	@Bean
+	public Step deleteIndexStep() {
+		return stepBuilderFactory.get("deleteIndexStep")
+			.tasklet((contribution, chunkContext) -> {
 
-                    try {
-                        searchService.deleteIndexBoard();
+				try {
+					String indexBoard = elasticsearchProperties.getIndexBoard();
+					if (searchService.existsIndex(indexBoard)) {
+						searchService.deleteIndex(indexBoard);
+					}
 
-                    } catch (IndexNotFoundException e) {
-                        log.warn(e.getDetailedMessage());
-                    }
+					String indexGallery = elasticsearchProperties.getIndexGallery();
+					if (searchService.existsIndex(indexGallery)) {
+						searchService.deleteIndex(indexGallery);
+					}
 
-                    try {
-                        searchService.deleteIndexGallery();
+				} catch (IndexNotFoundException e) {
+					log.warn(e.getDetailedMessage());
+				}
 
-                    } catch (IndexNotFoundException e) {
-                        log.warn(e.getDetailedMessage());
-                    }
+				return RepeatStatus.FINISHED;
+			})
+			.build();
+	}
 
-                    return RepeatStatus.FINISHED;
-                })
-                .build();
-    }
+	@Bean
+	public Step initSearchIndexStep() {
+		return stepBuilderFactory.get("initSearchIndexStep")
+			.tasklet((contribution, chunkContext) -> {
 
-    @Bean
-    public Step initSearchIndexStep() {
-        return stepBuilderFactory.get("initSearchIndexStep")
-                .tasklet((contribution, chunkContext) -> {
+				searchService.createIndexBoard();
+				searchService.createIndexGallery();
 
-                    searchService.createIndexBoard();
-                    searchService.createIndexGallery();
+				// search-word 는 인덱스를 새로 만들지 않음. 따라서 기존할 경우, skip 함
+				try {
+					searchService.createIndexSearchWord();
+				} catch (ResourceAlreadyExistsException e) {
+					log.warn("Index: {}, {}, {}", e.status().name(), e.getIndex(), e.getDetailedMessage());
+				}
 
-                    // search-word 는 인덱스를 새로 만들지 않음. 따라서 기존할 경우, skip 함
-                    try {
-                        searchService.createIndexSearchWord();
-                    } catch (ResourceAlreadyExistsException e) {
-                        log.warn("Index: {}, {}, {}", e.status().name(), e.getIndex(), e.getDetailedMessage());
-                    }
+				return RepeatStatus.FINISHED;
+			})
+			.build();
+	}
 
-                    return RepeatStatus.FINISHED;
-                })
-                .build();
-    }
+	@Bean
+	public Step initSearchDocumentsStep() {
+		return stepBuilderFactory.get("initSearchDocumentsStep")
+			.tasklet((contribution, chunkContext) -> {
 
-    @Bean
-    public Step initSearchDocumentsStep() {
-        return stepBuilderFactory.get("initSearchDocumentsStep")
-                .tasklet((contribution, chunkContext) -> {
+				searchService.processBulkInsertArticle();
+				searchService.processBulkInsertArticleComment();
+				searchService.processBulkInsertGallery();
 
-                    searchService.processBulkInsertArticle();
-                    searchService.processBulkInsertArticleComment();
-                    searchService.processBulkInsertGallery();
-
-                    return RepeatStatus.FINISHED;
-                })
-                .build();
-    }
+				return RepeatStatus.FINISHED;
+			})
+			.build();
+	}
 
 }

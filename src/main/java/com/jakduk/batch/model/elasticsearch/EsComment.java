@@ -1,11 +1,13 @@
 package com.jakduk.batch.model.elasticsearch;
 
+import java.util.List;
+import java.util.Map;
+
 import com.jakduk.batch.model.embedded.ArticleItem;
 import com.jakduk.batch.model.embedded.CommonWriter;
+
 import lombok.Builder;
 import lombok.Getter;
-
-import java.util.List;
 
 /**
 * @author <a href="mailto:phjang1983@daum.net">Jang,Pyohwan</a>
@@ -23,5 +25,6 @@ public class EsComment {
 	private CommonWriter writer;
 	private String content;
 	private List<String> galleries;
+	private Map<String, Object> boardJoinField;
 
 }
