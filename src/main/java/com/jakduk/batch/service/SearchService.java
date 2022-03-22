@@ -159,7 +159,7 @@ public class SearchService {
 						.content(JakdukUtils.stripHtmlTag(post.getContent()))
 						.category(StringUtils.defaultIfBlank(post.getCategory(), null))
 						.galleries(galleryIds)
-						.boardJoinField(Constants.ES_TYPE_ARTICLE)
+						.boardJoinField(Constants.ES_BOARD_JOIN_PARENT_ARTICLE)
 						.build();
 				})
 				.collect(Collectors.toList());
@@ -222,7 +222,7 @@ public class SearchService {
 						.galleries(galleryIds)
 						.boardJoinField(
 							new HashMap<String, Object>() {{
-								put("name", Constants.ES_TYPE_COMMENT);
+								put("name", Constants.ES_BOARD_JOIN_CHILD_COMMENT);
 								put("parent", comment.getArticle().getId());
 							}}
 						)
@@ -440,7 +440,7 @@ public class SearchService {
 				put("boardJoinField", new HashMap<String, Object>() {{
 					put("type", "join");
 					put("relations", new HashMap<String, String>() {{
-						put(Constants.ES_TYPE_ARTICLE, Constants.ES_TYPE_COMMENT);
+						put(Constants.ES_BOARD_JOIN_PARENT_ARTICLE, Constants.ES_BOARD_JOIN_CHILD_COMMENT);
 					}});
 				}});
 			}});
