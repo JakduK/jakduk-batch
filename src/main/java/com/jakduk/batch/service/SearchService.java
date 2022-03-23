@@ -447,28 +447,28 @@ public class SearchService {
 		}};
 	}
 
-	private Map<String, Object> getGalleryMappings() {
+	private Map getGalleryMappings() {
 		ObjectMapper objectMapper = ObjectMapperUtils.getObjectMapper();
 
 		ObjectNode idNode = objectMapper.createObjectNode();
-		idNode.put("type", "string");
+		idNode.put("type", "keyword");
 
 		ObjectNode nameNode = objectMapper.createObjectNode();
-		nameNode.put("type", "string");
+		nameNode.put("type", "text");
 		nameNode.put("analyzer", "korean");
 
 		// writer
 		ObjectNode writerProviderIdNode = objectMapper.createObjectNode();
-		writerProviderIdNode.put("type", "string");
-		writerProviderIdNode.put("index", "no");
+		writerProviderIdNode.put("type", "keyword");
+		writerProviderIdNode.put("index", false);
 
 		ObjectNode writerUserIdNode = objectMapper.createObjectNode();
-		writerUserIdNode.put("type", "string");
-		writerUserIdNode.put("index", "no");
+		writerUserIdNode.put("type", "keyword");
+		writerUserIdNode.put("index", false);
 
 		ObjectNode writerUsernameNode = objectMapper.createObjectNode();
-		writerUsernameNode.put("type", "string");
-		writerUsernameNode.put("index", "no");
+		writerUsernameNode.put("type", "keyword");
+		writerUsernameNode.put("index", false);
 
 		ObjectNode writerPropertiesNode = objectMapper.createObjectNode();
 		writerPropertiesNode.set("providerId", writerProviderIdNode);
@@ -490,7 +490,7 @@ public class SearchService {
 		return objectMapper.convertValue(mappings, Map.class);
 	}
 
-	private Map<String, Object> getSearchWordMappings() {
+	private Map getSearchWordMappings() {
 		ObjectMapper objectMapper = ObjectMapperUtils.getObjectMapper();
 
 		JsonNodeFactory jsonNodeFactory = JsonNodeFactory.instance;
@@ -499,18 +499,18 @@ public class SearchService {
 
 		propertiesNode.set("id",
 			jsonNodeFactory.objectNode()
-				.put("type", "string"));
+				.put("type", "keyword"));
 
 		propertiesNode.set("word",
 			jsonNodeFactory.objectNode()
-				.put("type", "string")
-				.put("index", "not_analyzed")
+				.put("type", "keyword")
+				.put("index", false)
 		);
 
 		ObjectNode writerNode = jsonNodeFactory.objectNode();
-		writerNode.set("providerId", jsonNodeFactory.objectNode().put("type", "string").put("index", "no"));
-		writerNode.set("userId", jsonNodeFactory.objectNode().put("type", "string").put("index", "no"));
-		writerNode.set("username", jsonNodeFactory.objectNode().put("type", "string").put("index", "no"));
+		writerNode.set("providerId", jsonNodeFactory.objectNode().put("type", "keyword").put("index", false));
+		writerNode.set("userId", jsonNodeFactory.objectNode().put("type", "keyword").put("index", false));
+		writerNode.set("username", jsonNodeFactory.objectNode().put("type", "keyword").put("index", false));
 		propertiesNode.set("writer", jsonNodeFactory.objectNode().set("properties", writerNode));
 
 		propertiesNode.set("registerDate",
