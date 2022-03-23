@@ -159,7 +159,7 @@ public class SearchService {
 						.content(JakdukUtils.stripHtmlTag(post.getContent()))
 						.category(StringUtils.defaultIfBlank(post.getCategory(), null))
 						.galleries(galleryIds)
-						.boardJoinField(Constants.ES_TYPE_ARTICLE)
+						.boardJoinField(Constants.ES_BOARD_JOIN_PARENT_ARTICLE)
 						.build();
 				})
 				.collect(Collectors.toList());
@@ -222,7 +222,7 @@ public class SearchService {
 						.galleries(galleryIds)
 						.boardJoinField(
 							new HashMap<String, Object>() {{
-								put("name", Constants.ES_TYPE_COMMENT);
+								put("name", Constants.ES_BOARD_JOIN_CHILD_COMMENT);
 								put("parent", comment.getArticle().getId());
 							}}
 						)
@@ -364,7 +364,7 @@ public class SearchService {
 		return Settings.builder()
 			.put("index.analysis.tokenizer.korean_nori_tokenizer.type", "nori_tokenizer")
 			.put("index.analysis.tokenizer.korean_nori_tokenizer.decompound_mode", "none")
-			.putList("index.analysis.analyzer.korean_nori_tokenizer.user_dictionary_rules", userWords)
+			.putList("index.analysis.tokenizer.korean_nori_tokenizer.user_dictionary_rules", userWords)
 			.put("index.analysis.analyzer.korean.type", "custom")
 			.put("index.analysis.analyzer.korean.tokenizer", "korean_nori_tokenizer")
 			.build();
@@ -376,17 +376,17 @@ public class SearchService {
 				put("id", new HashMap<String, String>() {{
 					put("type", "keyword");
 				}});
-				put("seq", new HashMap<String, String>() {{
+				put("seq", new HashMap<String, Object>() {{
 					put("type", "integer");
-					put("index", "no");
+					put("index", false);
 				}});
-				put("board", new HashMap<String, String>() {{
-					put("type", "constant_keyword");
-					put("index", "not_analyzed");
+				put("board", new HashMap<String, Object>() {{
+					put("type", "keyword");
+					put("index", false);
 				}});
-				put("category", new HashMap<String, String>() {{
-					put("type", "constant_keyword");
-					put("index", "not_analyzed");
+				put("category", new HashMap<String, Object>() {{
+					put("type", "keyword");
+					put("index", false);
 				}});
 				put("subject", new HashMap<String, String>() {{
 					put("type", "text");
@@ -396,23 +396,23 @@ public class SearchService {
 					put("type", "text");
 					put("analyzer", "korean");
 				}});
-				put("galleries", new HashMap<String, String>() {{
-					put("type", "string");
-					put("index", "no");
+				put("galleries", new HashMap<String, Object>() {{
+					put("type", "keyword");
+					put("index", false);
 				}});
 				put("writer", new HashMap<String, Object>() {{
 					put("properties", new HashMap<String, Object>() {{
-						put("providerId", new HashMap<String, String>() {{
+						put("providerId", new HashMap<String, Object>() {{
 							put("type", "keyword");
-							put("index", "no");
+							put("index", false);
 						}});
-						put("userId", new HashMap<String, String>() {{
+						put("userId", new HashMap<String, Object>() {{
 							put("type", "keyword");
-							put("index", "no");
+							put("index", false);
 						}});
-						put("username", new HashMap<String, String>() {{
-							put("type", "string");
-							put("index", "no");
+						put("username", new HashMap<String, Object>() {{
+							put("type", "keyword");
+							put("index", false);
 						}});
 					}});
 				}});
@@ -422,17 +422,17 @@ public class SearchService {
 				// for Comment Index
 				put("article", new HashMap<String, Object>() {{
 					put("properties", new HashMap<String, Object>() {{
-						put("id", new HashMap<String, String>() {{
+						put("id", new HashMap<String, Object>() {{
 							put("type", "keyword");
-							put("index", "no");
+							put("index", false);
 						}});
-						put("seq", new HashMap<String, String>() {{
+						put("seq", new HashMap<String, Object>() {{
 							put("type", "integer");
-							put("index", "no");
+							put("index", false);
 						}});
-						put("board", new HashMap<String, String>() {{
-							put("type", "constant_keyword");
-							put("index", "no");
+						put("board", new HashMap<String, Object>() {{
+							put("type", "keyword");
+							put("index", false);
 						}});
 					}});
 				}});
@@ -440,35 +440,35 @@ public class SearchService {
 				put("boardJoinField", new HashMap<String, Object>() {{
 					put("type", "join");
 					put("relations", new HashMap<String, String>() {{
-						put(Constants.ES_TYPE_ARTICLE, Constants.ES_TYPE_COMMENT);
+						put(Constants.ES_BOARD_JOIN_PARENT_ARTICLE, Constants.ES_BOARD_JOIN_CHILD_COMMENT);
 					}});
 				}});
 			}});
 		}};
 	}
 
-	private Map<String, Object> getGalleryMappings() {
+	private Map getGalleryMappings() {
 		ObjectMapper objectMapper = ObjectMapperUtils.getObjectMapper();
 
 		ObjectNode idNode = objectMapper.createObjectNode();
-		idNode.put("type", "string");
+		idNode.put("type", "keyword");
 
 		ObjectNode nameNode = objectMapper.createObjectNode();
-		nameNode.put("type", "string");
+		nameNode.put("type", "text");
 		nameNode.put("analyzer", "korean");
 
 		// writer
 		ObjectNode writerProviderIdNode = objectMapper.createObjectNode();
-		writerProviderIdNode.put("type", "string");
-		writerProviderIdNode.put("index", "no");
+		writerProviderIdNode.put("type", "keyword");
+		writerProviderIdNode.put("index", false);
 
 		ObjectNode writerUserIdNode = objectMapper.createObjectNode();
-		writerUserIdNode.put("type", "string");
-		writerUserIdNode.put("index", "no");
+		writerUserIdNode.put("type", "keyword");
+		writerUserIdNode.put("index", false);
 
 		ObjectNode writerUsernameNode = objectMapper.createObjectNode();
-		writerUsernameNode.put("type", "string");
-		writerUsernameNode.put("index", "no");
+		writerUsernameNode.put("type", "keyword");
+		writerUsernameNode.put("index", false);
 
 		ObjectNode writerPropertiesNode = objectMapper.createObjectNode();
 		writerPropertiesNode.set("providerId", writerProviderIdNode);
@@ -490,7 +490,7 @@ public class SearchService {
 		return objectMapper.convertValue(mappings, Map.class);
 	}
 
-	private Map<String, Object> getSearchWordMappings() {
+	private Map getSearchWordMappings() {
 		ObjectMapper objectMapper = ObjectMapperUtils.getObjectMapper();
 
 		JsonNodeFactory jsonNodeFactory = JsonNodeFactory.instance;
@@ -499,18 +499,18 @@ public class SearchService {
 
 		propertiesNode.set("id",
 			jsonNodeFactory.objectNode()
-				.put("type", "string"));
+				.put("type", "keyword"));
 
 		propertiesNode.set("word",
 			jsonNodeFactory.objectNode()
-				.put("type", "string")
-				.put("index", "not_analyzed")
+				.put("type", "keyword")
+				.put("index", false)
 		);
 
 		ObjectNode writerNode = jsonNodeFactory.objectNode();
-		writerNode.set("providerId", jsonNodeFactory.objectNode().put("type", "string").put("index", "no"));
-		writerNode.set("userId", jsonNodeFactory.objectNode().put("type", "string").put("index", "no"));
-		writerNode.set("username", jsonNodeFactory.objectNode().put("type", "string").put("index", "no"));
+		writerNode.set("providerId", jsonNodeFactory.objectNode().put("type", "keyword").put("index", false));
+		writerNode.set("userId", jsonNodeFactory.objectNode().put("type", "keyword").put("index", false));
+		writerNode.set("username", jsonNodeFactory.objectNode().put("type", "keyword").put("index", false));
 		propertiesNode.set("writer", jsonNodeFactory.objectNode().set("properties", writerNode));
 
 		propertiesNode.set("registerDate",

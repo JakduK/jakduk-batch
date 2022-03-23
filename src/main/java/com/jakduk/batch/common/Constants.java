@@ -6,8 +6,8 @@ public class Constants {
 
     public final static Integer ES_BULK_LIMIT = 1000;
     public final static Integer ES_AWAIT_CLOSE_TIMEOUT_MINUTES = 2;
-    public final static String ES_TYPE_ARTICLE = "article";
-    public final static String ES_TYPE_COMMENT = "comment";
+    public final static String ES_BOARD_JOIN_PARENT_ARTICLE = "article";
+    public final static String ES_BOARD_JOIN_CHILD_COMMENT = "comment";
     public final static String ES_TYPE_GALLERY = "gallery";
     public final static String ES_TYPE_SEARCH_WORD = "search_word";
 

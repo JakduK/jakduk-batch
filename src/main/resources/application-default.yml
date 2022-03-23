@@ -3,7 +3,6 @@ logging:
     console: "%d{ISO8601} [%thread] [%-5level] [%logger{0}.%M:%line] - %msg%n%rEx"
   level:
     root: debug
-    sun.rmi: INFO
     org.mongodb.driver: INFO
     org.springframework.amqp.rabbit.listener.BlockingQueueConsumer: INFO
     com.zaxxer.hikari.pool: INFO
