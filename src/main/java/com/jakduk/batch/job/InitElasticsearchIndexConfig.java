@@ -2,12 +2,6 @@ package com.jakduk.batch.job;
 
 import javax.annotation.Resource;
 
-import com.jakduk.batch.configuration.JakdukProperties;
-import com.jakduk.batch.service.SearchService;
-
-import lombok.extern.slf4j.Slf4j;
-
-import org.elasticsearch.ResourceAlreadyExistsException;
 import org.elasticsearch.index.IndexNotFoundException;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
@@ -19,6 +13,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+
+import com.jakduk.batch.configuration.JakdukProperties;
+import com.jakduk.batch.service.SearchService;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * 엘라스틱서치의 인덱스, 타입, 도큐먼트를 지우고 새로 만든다.
@@ -88,10 +87,9 @@ public class InitElasticsearchIndexConfig {
 				searchService.createIndexGallery();
 
 				// search-word 는 인덱스를 새로 만들지 않음. 따라서 기존할 경우, skip 함
-				try {
+				String indexSearchWord = elasticsearchProperties.getIndexSearchWord();
+				if (! searchService.existsIndex(indexSearchWord)) {
 					searchService.createIndexSearchWord();
-				} catch (ResourceAlreadyExistsException e) {
-					log.warn("Index: {}, {}, {}", e.status().name(), e.getIndex(), e.getDetailedMessage());
 				}
 
 				return RepeatStatus.FINISHED;
