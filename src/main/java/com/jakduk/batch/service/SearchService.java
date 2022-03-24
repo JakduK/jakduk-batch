@@ -1,6 +1,8 @@
 package com.jakduk.batch.service;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -365,8 +367,11 @@ public class SearchService {
 			.put("index.analysis.tokenizer.korean_nori_tokenizer.type", "nori_tokenizer")
 			.put("index.analysis.tokenizer.korean_nori_tokenizer.decompound_mode", "none")
 			.putList("index.analysis.tokenizer.korean_nori_tokenizer.user_dictionary_rules", userWords)
+			.put("index.analysis.filter.part_of_speech_stop_sp.type", "nori_part_of_speech")
+			.putList("index.analysis.filter.part_of_speech_stop_sp.stoptags", Arrays.asList("SP"))
 			.put("index.analysis.analyzer.korean.type", "custom")
 			.put("index.analysis.analyzer.korean.tokenizer", "korean_nori_tokenizer")
+			.putList("index.analysis.analyzer.korean.filter", Arrays.asList("part_of_speech_stop_sp", "lowercase"))
 			.build();
 	}
 
