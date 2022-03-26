@@ -340,7 +340,7 @@ public class SearchService {
 	}
 
 	private Settings getIndexSettings() {
-		String[] userWords = new String[] {
+		List<String> userWords = Arrays.asList(
 			"k리그",
 			"k리그1",
 			"k리그2",
@@ -348,7 +348,6 @@ public class SearchService {
 			"k4리그",
 			"성남fc",
 			"수원fc",
-			"인천utd",
 			"인천유나이티드",
 			"강원fc",
 			"fc서울",
@@ -360,18 +359,28 @@ public class SearchService {
 			"제주utd",
 			"제주유나이티드",
 			"서울e"
-		};
+		);
+
+		List<String> synonyms = Arrays.asList(
+			"성남 => 성남fc",
+			"인천utd, 인천 => 인천유나이티드"
+		);
+
+		List<String> analyzerFilters = Arrays.asList(
+			"lowercase",
+			"synonym_graph"
+		);
 
 		// SEE: https://www.elastic.co/guide/en/elasticsearch/plugins/7.17/analysis-nori-tokenizer.html
 		return Settings.builder()
 			.put("index.analysis.tokenizer.korean_nori_tokenizer.type", "nori_tokenizer")
 			.put("index.analysis.tokenizer.korean_nori_tokenizer.decompound_mode", "none")
 			.putList("index.analysis.tokenizer.korean_nori_tokenizer.user_dictionary_rules", userWords)
-			.put("index.analysis.filter.part_of_speech_stop_sp.type", "nori_part_of_speech")
-			.putList("index.analysis.filter.part_of_speech_stop_sp.stoptags", Arrays.asList("SP"))
+			.put("index.analysis.filter.synonym_graph.type", "synonym_graph")
+			.putList("index.analysis.filter.synonym_graph.synonyms", synonyms)
 			.put("index.analysis.analyzer.korean.type", "custom")
 			.put("index.analysis.analyzer.korean.tokenizer", "korean_nori_tokenizer")
-			.putList("index.analysis.analyzer.korean.filter", Arrays.asList("part_of_speech_stop_sp", "lowercase"))
+			.putList("index.analysis.analyzer.korean.filter", analyzerFilters)
 			.build();
 	}
 
