@@ -264,27 +264,26 @@ public class SearchService {
 		ObjectId lastGalleryId = null;
 
 		do {
-			List<EsGallery> comments = galleryRepository.findGalleriesGreaterThanId(lastGalleryId,
+			List<EsGallery> galleries = galleryRepository.findGalleriesGreaterThanId(lastGalleryId,
 				Constants.ES_BULK_LIMIT);
 
-			if (comments.isEmpty()) {
+			if (galleries.isEmpty()) {
 				hasGallery = false;
 			} else {
-				EsGallery lastGallery = comments.get(comments.size() - 1);
+				EsGallery lastGallery = galleries.get(galleries.size() - 1);
 				lastGalleryId = new ObjectId(lastGallery.getId());
 			}
 
-			comments.forEach(comment -> {
+			galleries.forEach(gallery -> {
 				try {
-					IndexRequest indexRequest = new IndexRequest(elasticsearchProperties.getIndexGallery(),
-						Constants.ES_TYPE_GALLERY, comment.getId());
-					indexRequest.source(ObjectMapperUtils.writeValueAsString(comment), XContentType.JSON);
+					IndexRequest indexRequest = new IndexRequest(elasticsearchProperties.getIndexGallery());
+					indexRequest.id(gallery.getId());
+					indexRequest.source(ObjectMapperUtils.writeValueAsString(gallery), XContentType.JSON);
 					bulkProcessor.add(indexRequest);
 
 				} catch (JsonProcessingException e) {
 					log.error(e.getLocalizedMessage());
 				}
-
 			});
 
 		} while (hasGallery);
