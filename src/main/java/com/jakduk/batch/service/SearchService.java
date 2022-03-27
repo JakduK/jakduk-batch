@@ -223,7 +223,7 @@ public class SearchService {
 						.content(JakdukUtils.stripHtmlTag(comment.getContent()))
 						.galleries(galleryIds)
 						.boardJoinField(
-							new HashMap<String, Object>() {{
+							new HashMap<String, String>() {{
 								put("name", Constants.ES_BOARD_JOIN_CHILD_COMMENT);
 								put("parent", comment.getArticle().getId());
 							}}
@@ -243,6 +243,7 @@ public class SearchService {
 				try {
 					IndexRequest indexRequest = new IndexRequest(elasticsearchProperties.getIndexBoard());
 					indexRequest.id(comment.getId());
+					indexRequest.routing(comment.getBoardJoinField().get("parent"));
 					indexRequest.source(ObjectMapperUtils.writeValueAsString(comment), XContentType.JSON);
 					bulkProcessor.add(indexRequest);
 				} catch (JsonProcessingException e) {
