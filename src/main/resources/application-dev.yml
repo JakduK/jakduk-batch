@@ -38,10 +38,10 @@ jakduk:
     index-board: jakduk_dev_board
     index-gallery: jakduk_dev_gallery
     index-search-word: jakduk_dev_search_word
-    bulk-actions: 10000
+    bulk-actions: 2000
     bulk-concurrent-requests: 2
     bulk-flush-interval-seconds: 10
-    bulk-size-mb: 50
+    bulk-size-mb: 10
 
   storage:
     image-path: /jakduk/storage/image/
