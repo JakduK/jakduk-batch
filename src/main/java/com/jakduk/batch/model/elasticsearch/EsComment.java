@@ -25,6 +25,6 @@ public class EsComment {
 	private CommonWriter writer;
 	private String content;
 	private List<String> galleries;
-	private Map<String, Object> boardJoinField;
+	private Map<String, String> boardJoinField;
 
 }
